@@ -93,3 +93,13 @@ useEffect(() => {
 
     export default React.memo(Weather, areEqual)
 ```
+## --save与--save-dev之间的区别
+1. 两者之间的区别：
+    * --save是对生产环境所需依赖的声明(开发应用中使用的框架，库)，如：jq，react，vue等
+    * --save-dev是对开发环境所需要依赖的声明(构建工具，测试工具)，如：babel，webpack等
+2. 如何判断当前需要引入的第三方插件使用什么指令
+    * 在安装时，可以按照npm官网中所对应的安装方式中去使用
+    * 自己进行判断当前需要引入的第三方插件是在什么环境中去使用
+3. 使用方式
+    * npm install 在默认的情况下是对生成环境和开发环境进行安装
+    * npm install --production只会去安装生产环境中的所有模块
