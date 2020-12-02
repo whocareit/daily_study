@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-11-26 15:36:17
- * @LastEditTime: 2020-11-26 15:42:07
+ * @LastEditTime: 2020-12-02 10:11:03
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /work/daily_study/project.md
@@ -102,4 +102,4 @@ useEffect(() => {
     * 自己进行判断当前需要引入的第三方插件是在什么环境中去使用
 3. 使用方式
     * npm install 在默认的情况下是对生成环境和开发环境进行安装
-    * npm install --production只会去安装生产环境中的所有模块
+    * npm install --production只会去安装生产环境中的所有模块save
