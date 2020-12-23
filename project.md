@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-11-26 15:36:17
- * @LastEditTime: 2020-12-22 15:23:34
+ * @LastEditTime: 2020-12-23 10:15:55
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /work/daily_study/project.md
@@ -248,3 +248,7 @@ const getRenderLast = (tree: TreeRenderType,caculateLayer: number = 1) => {
 * 在这时需要注意的就是该变量存储的内容是否对全局的其他的地方也有相同的引用，因而在此时可以采用一下的两种方式来做
     * 采用闭包的方式来处理，在闭包中去设置这个全局的变量，然后将之前的组件给抛出，这样生成的就不是一个全局变量，但是需要注意的就是，一定要手动的去清除缓存中的内容，不然就会出现数据量过大而造成数据加载缓慢的效果
     * 直接是在当前组件渲染完成之后，去清空缓存中的内容
+### antd中Tooltip组件
+* 该组件的作用用于与hover效果一样，当鼠标点击放在被该组件包裹的范围时，就会去显示Tooltip中的title中的名字
+### antd中的Drawer组件
+* 其主要的含义为抽屉，当点击按钮时，就会自动弹出抽屉，比较好的好处就是他采用的是绝对布局的方式，为了性能上的考虑，在实现这个功能时，不为了窗口变化而带来的自适应布局影响所划出的贝塞尔曲线，因而在此时就采用绝对布局的方式
