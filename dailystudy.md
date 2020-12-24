@@ -131,6 +131,82 @@ const throttle = (func, wait) => {
     }
 }
 
+## 函数柯里化与数组扁平化
+### 函数柯里化
+* 对于函数柯里化的理解，通俗来说就是在函数参数传递的过程中可以通过多此的参数传递，使得这个函数的参数个数达到饱和。
+* 函数柯里化的实现原理：
+```
+//将函数的参数划分为两部分
+function FixedCurry(fn) {   
+    //将类数组之后的元素给放在当前的这个数组当中
+    const  _args = [].slice.call(arguments, 1);
+    return function() {
+        const newArgs = _args.concat([].slice.call(arguments, 0));
+        return fn.apply(this, newArgs)
+    }
+}
+
+//采用递归的思想，重复上述的这个过程
+const newCurry = function (fn, length) {
+    if(arguments.length < length) {
+        const combined = [fn].concat([].slice.call(arguments, 0));
+        return newCurry(FixedCurry.apply(this, combined), length - arguments.length);
+    } else {
+        return fn.apply(this, arguments)
+    }
+}
+```
+### 数组扁平化
+* 数组扁平化的函数就是将一个多维数组转化为一个一维数组的过程
+```
+    //判断参数是否为一个数组的方式，可以采用isArray,也可以采用下面的方式来封装
+    function isArray(obj){
+        return Object.prototype.toString.call(obj) === '[object Array]
+    }
+    //数组扁平化方法，采用两种方式来实现
+    Array.prototype.flatten = function(){
+        const result = [];
+        this.forEach(function(item)) {
+            isArray(item) ? result = result.concat(item.flatten) : result.push(item);
+        }
+        return result;
+    }
+
+    function flatten(arr) {
+        const result = arr || [];
+        return arr.reduce(function(prev, next){
+            return isArray(next) ? result = result.concat(flatten(next)): result.concat(next)
+        },[]);
+    }
+```
+
+## 纯函数与记忆函数
+### 纯函数
+* 含义：对于纯函数的理解其实非常简单，在一个函数中，该函数接收某种类型的输入就会得到相同类型的输出
+* 好处：使用纯函数编程的方式就只需要去考虑输入与输出
+* 案列：在redux中的reducer就是一个纯函数，具体可以参考这个
+### 记忆函数
+* 含义：能够将上一次输出的结果保存下来给下一次函数下一次使用。其实其本质就是设置一个缓存的解构，以空间来换取时间的过程
+* 具体实例，以斐波拉契数列为例，实例如下：
+```
+    function factorial(n) {
+        const cache = {};
+        return function _fib(n){
+            if(cache[n]) {
+                return cache[n]
+            }else{
+                if(n === 1 || n === 2) {
+                    cache[n] = 1;
+                    return 1;
+                }else{
+                    cache[n] = n*_fib(n - 1);
+                    return cache[n];
+                }
+            }
+        _fib(n)
+    }
+```
+
 ### 两者的相同点与异同点
 * 相同点：
     * 都可以通过setTimeout实现
@@ -269,4 +345,74 @@ function add([x, y]) {
 }
 
 [[1, 2], [3, 4]].map(([a, b]) => a + b)
+```
+
+### 不能使用圆括号的情况
+* 在解构赋值的过程中有三种情况是不能够使用圆括号的
+    * 变量声明语句
+    * 函数参数
+    * 赋值语句的表达式
+
+### 解构赋值的用途
+* 交换变量的值，以下面的实例所示
+```
+    let x = 1, y = 2;
+    [x, y] = [y, x];
+    console.log(x, y);
+    // x = 2, y = 1
+```
+* 解构函数返回的多个值，当在函数返回的是一个对象或者是数组时，就可以采用对象解构的方式，来获取值
+```
+    function example(){
+        return [1, 2, 3]
+    }
+    let [a, b, c] = example();
+    //a = 1, b = 2, c = 3
+```
+* 函数参数的定义，传入一组数据给函数，函数通过解构的方式解构出该组数据
+```
+    //参数是一组有次序的值时,可以采用数组的形式赋值
+    function f([x, y, z]) {
+        console.log(x, y, z)
+    }
+    f([1, 2, 3]);
+    //参数是一组无序的值时，可以采用对象的方式来及逆行解构
+    function f({x, y, z}) {
+        console.log(x, y, z);
+    }
+    f({z: 1, y: 3, x: 2})
+```
+* 提取类似于json这样的数据时
+```
+    let json = {
+        id: 42,
+        status: '200',
+        data:['123', '234']
+    }
+    let { id, status, data } = json
+    console.log(id, status, data)
+```
+* 函数的默认值，以下面的案例所示
+```
+    jQuery.ajax = function(url, {
+        async= true,
+        beforeSend = function() {},
+        cache = true,
+        complete = function() {},
+        global = true,
+        ...
+    } = {})
+```
+* 遍历Map结构，使用for...of...循环遍历
+```
+const map = new Map()
+map.set('first', 'hello');
+map.set('second', 'world');
+for(let [key, value] of map) {
+    console.log(`${key}-${value}`)
+}
+```
+* 输入模块的指定方法，在加载模块时，直接采用对象结构的方式来加载
+```
+    const { SourceMapConsumer, SourceMap } = require("source-map") 
 ```
