@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-11-26 15:36:17
- * @LastEditTime: 2020-12-23 10:15:55
+ * @LastEditTime: 2020-12-25 18:33:59
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /work/daily_study/project.md
@@ -252,3 +252,94 @@ const getRenderLast = (tree: TreeRenderType,caculateLayer: number = 1) => {
 * 该组件的作用用于与hover效果一样，当鼠标点击放在被该组件包裹的范围时，就会去显示Tooltip中的title中的名字
 ### antd中的Drawer组件
 * 其主要的含义为抽屉，当点击按钮时，就会自动弹出抽屉，比较好的好处就是他采用的是绝对布局的方式，为了性能上的考虑，在实现这个功能时，不为了窗口变化而带来的自适应布局影响所划出的贝塞尔曲线，因而在此时就采用绝对布局的方式
+
+## 一种处理时间的方式
+* 对于时间的处理，可以将处理好的小时，分钟以及秒存在一个数组之中，最后在展示时通过调用该方法，并且使用数组的join方法，插入相应的表示符，即可。如“-”或者是“：”这两种符号
+* 对于时间的处理，需要看具体的数据是什么，如果是时间戳就需要采用相应的时间戳的处理方式。具体需要按照情况来定
+
+## ts中如何去写一个自定义video或者是自定义audio
+### 自定义h5播放器样式
+* 通过ref获得的对象是一个HTMLVideoElement对象
+```
+const hRef = useRef<HTMLVideoElement>();
+```
+* 有关于video标签原生样式的说明，autoplay：视频加载就绪后，就会马上播放;controls: 向用户展示原生控件样式。loop: 是否循环播放当前视频内容; muted：规定视频的音频输出应该被静音
+* Element.getBoundingClientRect() 方法，返回元素的大小及其相对于视口的位置，需要看具体的盒子模型是标准的还是严格模式下的，所得到的具体尺寸是受到当前的盒子模型所影响
+* 在video中获取到类似与player这样的操作方式，需要通过使用useRef来获取到dom节点从而进行操作
+* 播放器需要去监听的三个事件，视频加载就绪(loadedmetadata)，时间更新(timeupdate), 视频结束播放(ended)，在这视频加载就绪时，需要去加载出视频的时间，在更新时间事件时，需要去记录当前更新时间是在什么时候。视频结束播放时需要去改变当前的按钮状态以及将播放时间进度设置为0
+```
+useEffect(() => {
+    const player = hRef.current;
+
+    const handleMetaDataLoad = (e) => {
+      const target = e.target as HTMLVideoElement;
+      setDuration(target.duration)
+    }
+
+    const handleTimeupdate = (e) => {
+      const target = e.target as HTMLVideoElement;
+      setCurrenttime(target.currentTime);
+    }
+
+    const handlePlayEnd = (e) => {
+      setPlaying(false);
+      setCurrenttime(0);
+    }
+
+    player.addEventListener('loadedmetadata', handleMetaDataLoad, false);
+
+    player.addEventListener('timeupdate', handleTimeupdate, false);
+
+    player.addEventListener('ended', handlePlayEnd, false);
+
+    return () => {
+      player.removeEventListener('loadedmetadata', handleMetaDataLoad, false);
+      player.removeEventListener('timeupdate', handleTimeupdate, false);
+      player.removeEventListener('ended', handlePlayEnd, false);
+    }
+
+},[])
+```
+* 点击更改播放按钮的状态，只需要增加点击事件即可,这里有个小技巧，就是在设置值时采用!playing,就会取得其传入的相反值
+```
+const handleVideoPlay = () => {
+    const player = hRef.current
+    if( playing ) {
+      player.pause();
+    } else {
+      player.play();
+    }
+    setPlaying(!playing);
+  }
+```
+* 设置进度条的方式，采用鼠标点击事件，来进行处理。通过里面的percent来获取到当前实时的百分比。在ts中，鼠标点击事件的处理方式如下所示
+```
+const  handleDurationClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    const target = e.target as HTMLVideoElement;
+    const { left } = target.parentElement.getBoundingClientRect();
+    const percent = (e.clientX - left) / target.parentElement.clientWidth;
+    const currentTime = percent * duration;
+    
+    setCurrenttime(currentTime);
+    hRef.current.currentTime = currentTime;
+  }
+
+```
+* useImperativeHandle这个hook，用于在使用ref时自定义暴露给父组件的实际值
+```
+function FancyInput(props, ref) {
+  const inputRef = useRef();
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current.focus();
+    }
+  }));
+  return <input ref={inputRef} ... />;
+}
+FancyInput = forwardRef(FancyInput);
+```
+### 自定义音频播放器方式
+* 如何去获取到音频的player，采用下面的这种方式即可
+```
+    const hRef = useRef<HTMLVideoElement>();
+```
