@@ -416,3 +416,161 @@ for(let [key, value] of map) {
 ```
     const { SourceMapConsumer, SourceMap } = require("source-map") 
 ```
+
+## 字符串的扩展
+### 字符串的Unicode表示法
+* 在es6中加强了对unicode的支持，允许采用\uxxxx形式来表示一个字符，其中xxxx表示字符的unicode码点。但是这种表示方法只限于码点在\u0000~\uFFFF之间的字符，超过这个就需要采用双字节累表示。如下面的案列所示
+```
+    "\u0661"
+    "\uD842\uDFB7"
+```
+* 对于这种超过码点的方式，在es6中做出了一点的改进，只需要将码点放在大括号中，就能正确的解读该字符
+```
+'\u{1F680}' === '\uD83D\uDE80'
+```
+### 字符串的遍历器接口
+* 在es6中为字符串添加了遍历器接口，使得字符串可以适用for...of...循环遍历
+```
+for (let codePoint of 'foo') {
+    console.log(codePoint);
+}
+// 'f'
+// 'o'
+// 'o'
+```
+* 适用for...of...还可以去识别码点大于0xFFFF的码点，for...in...循环就无法去识别这样的码点
+```
+let text = String.from.fromCodePoint(0x20BB7);
+for(let i of text) {
+    console.log(i)
+}
+```
+
+### 直接输入U+2028和U+2029
+* 在js的字符串中允许直接输入字符，以及输入字符的转义形式。如下面的案列所示
+```
+'中' === '\u4e2d' //true
+```
+* 但是在js中规定有5个字符不能在字符串中去直接使用，需要采用转义的形式来。这个规定本身没有任何问题，主要是在json格式中其允许在字符串中可以直接使用 U+2028（行分隔符）和 U+2029（段分隔符）。但是json格式已经被冻结，没有办法去修改。因而在es2019中允许js字符串直接输入上述的两个符号
+    * U + 005C：反斜杠
+    * U + 000D: 回车
+    * U + 2028：行分隔符
+    * U + 2029: 段分隔符
+    * U + 000A: 换行符
+
+### JSON.stringify()方法的改造
+* 按照标准，JSON数据必须是UTF-8编码，但是在JSON.stringify()方法中可能返回不符合规定的UTF-8比奥准的字符串，具体来说就是utf-8标准规定，0xD800和0XDFFF之间的码点，不能单独使用，必须配对来使用。
+* JSON.stringify()的问题在于，它可能返回0xD800到0xDFFF之间的单个码点，因而在es2019中中为了确保返回的是合法的utf-8字符，es2019改变了JSON.stringify()的行为。如果遇到0xD800到0XDFFF之间的单个码点，或者不存在的配对形式，他会返回转义字符串
+
+### 模板字符串
+* 对于传统的js而言，输出模板通常就是采用单双引号的写法来写如下面的案列所示
+```
+$('#result').append(
+  'There are <b>' + basket.count + '</b> ' +
+  'items in your basket, ' +
+  '<em>' + basket.onSale +
+  '</em> are on sale!'
+);
+```
+* 对于上述的这种单双引号写法有几点的注意方式
+    * 在书写的过程中如果需要换行，就需要采用+的方式
+    * 表示一个变量时，也需要去采用+的方式
+    * 如果是字符串的嵌套表示，需要单双引号一起配套使用
+    * 空格在上述的方式中，如果有多个只表示一个
+* 对于上述的这种方式来说，在书写的过程就会有很多的麻烦，因为在es6中就有模板字符串来增强对字符串的可操作性，使用反引号(`)表示。它可以当作是普通的字符串来使用，也可以来定义多行的字符串，或者在字符串中嵌入变量。如下面的案列所示
+```
+// 普通字符串
+`In JavaScript '\n' is a line-feed.`
+
+// 多行字符串
+`In JavaScript this is
+ not legal.`
+
+console.log(`string text line 1
+string text line 2`);
+
+// 字符串中嵌入变量
+let name = "Bob", time = "today";
+`Hello ${name}, how are you ${time}?`
+```
+* 在采用模板字符串的表示过程中，空格和换行都是被保留的，不会出现之前使用单双引号方式来表示的问题
+* 模板字符串中嵌入变量的方式，需要将变量名写在${}这个符号之中,如下面的案列所示
+```
+const time = `!!!!!!!`
+ console.log(`hello world ${time}`)
+```
+* 在这种的写法中，可以在其内部放入任意的js表达式，可以进行运算，以及引用对象的属性。如下面所示
+```
+let x = 1;
+let y = 2;
+
+`${x} + ${y} = ${x + y}`
+// "1 + 2 = 3"
+
+`${x} + ${y * 2} = ${x + y * 2}`
+// "1 + 4 = 5"
+
+let obj = {x: 1, y: 2};
+`${obj.x + obj.y}`
+```
+* 在模板字符串中调用函数，如下面的案列所示
+```
+function fn() {
+    return `hello world`
+}
+`foo ${fn()} bar`
+```
+* 模板字符串之间的嵌套使用,如下面的案列所示
+```
+const tpl = 123, temp = 456
+console.log(`result is ${tpl + `${temp}`}`)
+```
+### 实例：模板编译
+* 模板编译函数，如下面所示
+```
+function compile(template){
+  const evalExpr = /<%=(.+?)%>/g;
+  const expr = /<%([\s\S]+?)%>/g;
+
+  template = template
+    .replace(evalExpr, '`); \n  echo( $1 ); \n  echo(`')
+    .replace(expr, '`); \n $1 \n  echo(`');
+
+  template = 'echo(`' + template + '`);';
+
+  let script =
+  `(function parse(data){
+    let output = "";
+
+    function echo(html){
+      output += html;
+    }
+
+    ${ template }
+
+    return output;
+  })`;
+
+  return script;
+}
+```
+### 标签模板
+* 对于模板字符串的功能，其不仅可以用来表示字符串，也可以在紧跟在一个函数名的后面，该函数将用来处理这个模板字符串，这种被称为"标签模板"功能
+* 对于标签模板的理解，标签模板其实不是模板，而是函数调用的一种特殊形式。"标签"指的就是函数，紧跟在后面的模板字符串就是它的参数
+```
+alert`hello`
+//等同于
+alert(['hello'])
+```
+* 如果是模板字符里面有变量，就不是简单的调用了，而是会将模板字符串先处理成多个参数，再调用函数，如下面的案例所示
+```
+let a = 5;
+let b = 10;
+tag`Hello ${a + b} world ${a*b}`
+//等同于
+tag(['Hello ', ' world ', ''], 15, 50);
+```
+* 使用标签模板，可以插入其他语言以及用法如java或者是jsx
+### 模板字符串的限制
+* 在标签模板中，可以内嵌其他语言，但是模板字符串默认会将字符串转义，导致无法嵌入其他语言
+
