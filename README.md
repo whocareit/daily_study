@@ -574,3 +574,75 @@ tag(['Hello ', ' world ', ''], 15, 50);
 ### 模板字符串的限制
 * 在标签模板中，可以内嵌其他语言，但是模板字符串默认会将字符串转义，导致无法嵌入其他语言
 
+## 字符串的新增方法
+### String.fromCodePoint()
+* es5中提供了String.fromCharCode()方法，用于Unicode码点返回对应字符，但是这个方法不能识别码点大于0xFFFF的字符。因而在es6中提供了String.fromCodePoint()方法，可以识别大于0xFFFF的字符，弥补了之前的String.fromCharCode()方法的不足
+### String.raw()
+* 在es6中为原生的String对象，提供了一个raw()方法。该方法返回一个斜杠都被转义的字符串，往往用于模板字符串的处理方法
+```
+String.raw`Hi\n${2+3}!`
+// 实际返回 "Hi\\n5!"，显示的是转义后的结果 "Hi\n5!"
+
+String.raw`Hi\u000A!`; //true
+```
+### 实例方法：codePointAt()
+* 在js内部，字符以UTF-16的合适存储， 每个字符固定为2个字节。对于有的需要4个字节存储的字符。js会以为他们是两个字符。因而在es6中使用codePointAt()方法，能够处理正确4个字节存储的字符，返回一个码点
+```
+let s = '𠮷a';
+
+s.codePointAt(0) // 134071
+s.codePointAt(1) // 57271
+
+s.codePointAt(2) // 97
+```
+* 该方法的参数，是字符在字符串中的位置(从0开始)，如果存在顺序上得问题，那么解析出来就不正确
+### normalize()
+* 用于去表示类似欧洲语言中有语调符号和重音符号的，在Unicode中提供了两种方法，一种是直接提供带重音的符号。另外一种是提供合成符号，即原字符与重音符号的合成，两个字符合成一个字符。这两种表示方法，在视觉和语义上都是等价的，但是在js中不能识别。
+```
+'\u01D1'==='\u004F\u030C' //false
+
+'\u01D1'.length // 1
+'\u004F\u030C'.length // 2
+```
+* 因而在es6中提供了字符串实列的normalize()方法，用来将字符的不同表示方式统一为同样的形式，这个过程就叫做Unicode正规化
+### 实列方法: includes(), startsWith(), endsWith()
+* 在原有的js中只有indexOf方法，可以用来确定一个字符串是否包含在另外一个字符串中，es6中又提供了三种方式
+    * includes: 返回布尔值，表示是否找到参数字符串
+    * startsWidth: 返回布尔值，表示参数字符串是否在原字符串的头部
+    * endsWith: 返回布尔值，表示参数字符串是否在原字符串的尾部
+* 如下面的实例所示
+```
+let s = 'Hello world!';
+
+s.startsWith('Hello') // true
+s.endsWith('!') // true
+s.includes('o') // true
+```
+* 这三个方法都支持第二个参数，表示开始搜索的位置，如下所示
+```
+let s = 'Hello world!';
+
+s.startsWith('world', 6) // true
+s.endsWith('Hello', 5) // true
+s.includes('Hello', 6) // false
+```
+### 实例方法: repeat()
+* 该方法返回一个新的字符串，表示原字符串重复n次，但是对于参数有以下几点说明
+    * 参数是小数，会被取整
+    * 参数是负数或者Infinity，会报错
+    * 参数是0到-1之间的小数，等同于0
+    * 参数是NaN等同于0
+    * 参数是字符串，则会转化为数字
+* 以下面的实例进行说明
+```
+'na'.repeat(2.9) // "nana"
+'na'.repeat(Infinity)
+// RangeError
+'na'.repeat(-1)
+// RangeError
+'na'.repeat(-0.9) // ""
+'na'.repeat(NaN) // ""
+'na'.repeat('na') // ""
+'na'.repeat('3') // "nanana"
+```
+
