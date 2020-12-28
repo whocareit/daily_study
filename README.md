@@ -645,4 +645,334 @@ s.includes('Hello', 6) // false
 'na'.repeat('na') // ""
 'na'.repeat('3') // "nanana"
 ```
+### 实例方法：padStart() padEnd()
+* 在es2017中引入字符串补全长度的功能，如果某个字符串不够指定长度，会在头部或者是尾部自动补全。其中padStart()用于头部补全，padEnd()用于尾部补全，如下面的案例所示：
+```
+'x'.padStart(5, 'ab') //'ababx'
+'x'.padEnd(5, 'ab') //'xabab'
+```
+* 在上述的两个方法中，有两个参数，第一个参数是字符串生效的最大长度，第二个参数是用来补全的字符串，需要注意的是**如果原字符串的长度，等于或者是大于最长长度，则字符串补全不生效，返回原来的字符换**
+，如果用来补全的字符串与原字符串，两者之和长度超过了最大长度，则会截去超出位数的补全字符串，如果省略掉第二个参数，默认使用空格补全长度
 
+### 实例方法：trimStart(),trimEnd()
+* 在es2019中对字符串新增的两个方法，他们的行为和trim方法一致，trimStart()用于去消除字符串头部的空格，trimEnd()消除尾部的空格，返回的都是新的字符串，不会去修改原始的字符串
+```
+const s = '  abc  ';
+
+s.trim() // "abc"
+s.trimStart() // "abc  "
+s.trimEnd() // "  abc"
+```
+
+### 实例方法：matchAll()
+* 该方法返回一个正则表达式在当前字符串的所有匹配
+
+### 实例方法：replaceAll()
+* 之前的方法所提供的replace()只能替换匹配的第一个，对于之前的方式，如果要全部匹配需要使用到的就是正则表达式。在es2021中引入了replaceAll()，可以一次性替换掉所有符合匹配的匹配项
+```
+'aabbcc'.replaceAll('b', '_')
+// 'aa__cc'
+```
+* 对于该方法的说明，返回一个新的字符串，不会改变原字符串
+
+## 数值的扩展
+### 二进制和八进制表示法
+* 在es6中提供了二进制和八进制数值的新的写法，分别需要使用前缀0b(或0B)和0o(或0O)表示，如下案例所示
+```
+0b111110111 === 503 // true
+0o767 === 503 // true
+```
+* 如果要将0b和0o前缀的字符串数值转为十进制，要使用Number方法,原因是因为Number方法第二个参数就是默认的为转化为十进制，如下所示
+```
+    Number('0b111') // 7
+    Number('0o10') //8
+```
+### Number.isFinite(), Number.isNaN()
+* 这两个方法的分别作用如下：
+* Number.isFinite()用来检查一个数值是否为有限的(finite)，即不是Infinity,需要去注意的就是**如果参数类型不是数值,Number.isFinite一律返回false**如下面的案例所示
+```
+Number.isFinite(15); // true
+Number.isFinite(0.8); // true
+Number.isFinite(NaN); // false
+Number.isFinite(Infinity); // false
+Number.isFinite(-Infinity); // false
+Number.isFinite('foo'); // false
+Number.isFinite('15'); // false
+Number.isFinite(true); // false
+```
+* Number.isNaN用来检查一个值是否为NaN，**需要注意的是如果参数不是NaN，全部返回true**,如下面的案例所示：
+```
+Number.isNaN(NaN) // true
+Number.isNaN(15) // false
+Number.isNaN('15') // false
+Number.isNaN(true) // false
+Number.isNaN(9/NaN) // true
+Number.isNaN('true' / 0) // true
+Number.isNaN('true' / 'true') // true
+```
+* 上述的两个方法与传统的全局方法isFinite()和isNaN()相比较，传统的方法需要先调用Number（
+,将非数值的值转化为数值，再进行判断，而这两个新方法只对数值有效
+
+### Number.parseInt()和Number.parseFloat()
+* es6中将全局的parseInt()和parseFloat()给移植到Number对像上面，行为完全保持不变
+```
+// ES5的写法
+parseInt('12.34') // 12
+parseFloat('123.45#') // 123.45
+
+// ES6的写法
+Number.parseInt('12.34') // 12
+Number.parseFloat('123.45#') // 123.45
+```
+
+### Number.isInteger()
+* 该方法用来判断一个数值是否为整数
+```
+Number.isInteger(25) //true
+Number.isInteger(23.9) // false
+```
+* 如果参数不是数值，该方法直接返回false
+* 需要去注意的就是以下的这点**如果数值的精度超过了这个限制，第54及其以后的位就会被丢弃，这种情况下该方法就不适用**
+
+### Number.EPSILON
+* es6在Number对象上，新增了一个极小的常数Number.EPSILON，该常数在1与大于1的最小浮点数之间
+
+### 安全整数和Number.isSafeInteger()
+* 在js中能够准确表示的整数范围在-2^53到2^53之间(不包含两个端点)，超过这两个范围就无法准确的表示这个值
+```
+Math.pow(2, 53) // 9007199254740992
+
+9007199254740992  // 9007199254740992
+9007199254740993  // 9007199254740992
+
+Math.pow(2, 53) === Math.pow(2, 53) + 1
+// true
+```
+* 因而在es6中引入了Number.MAX_SAFE_INTEGER和Number.MIN_SAFE_INTEGER这两个常量，用来表示这个范围的上下限，如下面的案例所示
+```
+Number.MAX_SAFE_INTEGER === Math.pow(2, 53) - 1
+// true
+Number.MAX_SAFE_INTEGER === 9007199254740991
+// true
+
+Number.MIN_SAFE_INTEGER === -Number.MAX_SAFE_INTEGER
+// true
+Number.MIN_SAFE_INTEGER === -9007199254740991
+// true
+```
+
+### Math.trunc()
+* 该方法用来去除一个数的小数部分，返回整数部分,如下面的案例所示
+```
+Math.trunc(4.1) // 4
+Math.trunc(4.9) // 4
+Math.trunc(-4.1) // -4
+Math.trunc(-4.9) // -4
+Math.trunc(-0.1234) // -0
+```
+* 对于这给个方法有以下的几点说明
+    * 对于非数值,Math.trunc内部使用Number方法将其转为数值
+    ```
+    Math.trunc('123.456') // 123
+    Math.trunc(true) //1
+    Math.trunc(false) // 0
+    Math.trunc(null) // 0
+    ```
+    * 对于控制和无法截取整数的值，返回NaN
+    ```
+    Math.trunc(NaN);      // NaN
+    Math.trunc('foo');    // NaN
+    Math.trunc();         // NaN
+    Math.trunc(undefined) // NaN
+    ```
+    * 对于没有部署这个方法的环境。可以采用下面的方式来模拟这个方法
+    ```
+    Math.trunc = Math.trunc || function(x) {
+        return x < 0 ? Math.ceil(x) : Math.floor(x);
+    }
+    ```
+
+### Math.sign()
+* 该方法用来判断一个数到底是正数、负数、还是零，对于非数值，会将其转化为数值，会返回五种值
+    * 参数是正数，返回+1
+    * 参数是负数，返回-1
+    * 参数是0，返回0
+    * 参数是-0， 返回0
+    * 参数是其他值，返回NaN
+```
+Math.sign(-5) // -1
+Math.sign(5) // +1
+Math.sign(0) // +0
+Math.sign(-0) // -0
+Math.sign(NaN) // NaN
+```
+* 如果参数是非数值，会自动转为数值，对于那些无法转为数值的值，会返回NaN
+```
+Math.sign('')  // 0
+Math.sign(true)  // +1
+Math.sign(false)  // 0
+Math.sign(null)  // 0
+Math.sign('9')  // +1
+Math.sign('foo')  // NaN
+Math.sign()  // NaN
+Math.sign(undefined)  // NaN
+```
+* 对于没有部署这个方法的环境，可以采用下面的方式来模拟
+```
+Math.sign = Math.sign || function(x) {
+    x = +x;
+    if(x == 0 || isNaN(x) {
+        return x;
+    })
+    return x > 0 ? 1 : -1;
+}
+```
+
+### Math.cbrt()
+* 该方法用于去计算一个数的立方根，如下面所示
+```
+Math.cbrt(-1) // -1
+Math.cbrt(0)  // 0
+Math.cbrt(1)  // 1
+Math.cbrt(2)  // 1.2599210498948732
+```
+* 对于非数值，Math.cbrt()方法内部也是先使用Number()方法转化为数值
+* 对于没有部署的这个方法的环境，可以用下面的代码来模拟
+```
+Math.abrt = Math.abrt || function(x) {
+    const y = Math.pow(Math.abs(x), 1/3);
+    return x < 0 ? -y : y;
+}
+```
+
+### Math.clz32()
+* 该方法将参数转为32位无符号整数的形式，然后返回这个32位值里面有多个前导0，如下面的案例所示
+```
+Math.clz32(0) // 32
+Math.clz32(1) // 31
+Math.clz32(1000) // 22
+Math.clz32(0b01000000000000000000000000000000) // 1
+Math.clz32(0b00100000000000000000000000000000) // 2
+```
+
+### Math.imul()
+* 该方法返回两个数以32位带符号整数形式相乘的结果，返回的也是一个32位的带符号整数
+```
+Math.imul(2, 4) //8
+Math.imul(-1, 8)  // -8
+Math.imul(-2, -2) // 4
+```
+
+### Math.fround()
+* 该方法返回一个数的32为单精度浮点数形式
+* 对于32位单精度格式来说，数值精度是24个二进制位(1位隐藏位于23位有效位)，所以对于-2^24至2……24之间的整数(不包含两个端点)，返回结果与参数本身一致
+```
+Math.fround(0) //0
+Math.fround(1) //1
+Math.fround(2**24 - 1) // 1677215 
+```
+
+### Math.hypot()
+* 该方法返回所有参数的平方和的平方根
+```
+Math.hypot(3, 4);        // 5
+Math.hypot(3, 4, 5);     // 7.0710678118654755
+Math.hypot();            // 0
+Math.hypot(NaN);         // NaN
+Math.hypot(3, 4, 'foo'); // NaN
+Math.hypot(3, 4, '5');   // 7.0710678118654755
+Math.hypot(-3);          // 3
+```
+
+### 对数方法
+* 在es6中新增了4个对数相关方法
+    * Math.expm1(), 返回e^x - 1
+    * Math.log1p(), 返回1+x的自然对数，即Math.log(1 + x)。如果x小于-1，返回NaN
+    * Math.log10(), 返回10为低的x的对数，如果小于0，则返回NaN
+    * Math.log2(), 返回以2为底的x的对数。如果x小于0，返回NaN
+
+### 双曲函数
+* 在es6中新增了6个双曲函数方法
+    * Math.sinh(x) 返回x的双曲正弦
+    * Math.cosh(x) 返回x的双曲余弦
+    * Math.tanh(x) 返回x的双曲正切
+    * Math.asinh(x) 返回x的反双曲正弦
+    * Math.acosh(x) 返回x的反双曲余弦
+    * Math.atanh(x) 返回x的反双曲正切
+
+### 指数运算符
+* es6中新增了一个指数运算符(**)
+```
+2**4 // 16
+2**3**2 // 512
+```
+
+### BigInt数据类型
+* 该数据类型是2020引入的一种新的数据类信号，用于解决超过整数精度的位置表示，用n来表示这种数据类型
+* BigInt可以进行进制的转化，其和普通的整数时两种值，他们之间不相等，如果使用typeof对BigIt类型的数据返回bigint，BigInt可以使用负号，但是不能够使用正号，因为会与asm.js起冲突
+```
+0b1101n // 二进制
+0o777n // 八进制
+0xFFn // 十六进制
+
+42n === 42 // false
+
+-42n // 正确
++42n // 报错
+```
+
+### BigInt对象
+* js提供原生的BigInt对象，可以用作构造函数生成BigInt类型的数值，转化规则基本与Number()一致，将其他类型的值转为BigInt
+```
+BigInt(123) // 123n
+BigInt('123') // 123n
+BigInt(false) // 0n
+BigInt(true) // 1n
+```
+* BigInt()构造函数必须要有参数，而且参数必须可以正常转为数值，下面的这些用法会报错
+```
+new BigInt() // TypeError
+BigInt(undefined) //TypeError
+BigInt(null) // TypeError
+BigInt('123n') // SyntaxError
+BigInt('abc') // SyntaxError
+```
+* 如果参数是小数，也会报错
+```
+BigInt(1.5) // RangeError
+BigInt('1.5') // SyntaxError
+```
+
+* BigInt对象中所含有的实例方法
+    * BigInt.prototype.toString()
+    * BigInt.prototype.valueOf()
+    * BigInt.prototype.toLocaleString()
+    * BigInt.asUintN(width, BigInt):给定的 BigInt 转为 0 到 2width - 1 之间对应的值。
+    * BigInt.asIntN(width, BigInt)：给定的 BigInt 转为 -2width - 1 到 2width - 1 - 之间对应的值。
+    * BigInt.parseInt(string[, radix])：近似于Number.parseInt()，将一个字符串转换成指定进制的 BigInt。
+* 转化规则，可以使用Boolean, Number()和String()三个方法，将BigInt转为布尔值、数值和字符串类型
+```
+Boolean(0n) // false
+Boolean(1n) // true
+Number(1n)  // 1
+String(1n)  // "1"
+```
+* 数学运算，BigInt类型的+ - * 和** 这四个二元运算符，与Number类型的行为一致，除了在使用/会舍弃掉小数部分，返回一个整数
+
+* 其他运算，BigInt对应的布尔值，与Number类型的一致，即0n会转为false，1n会转为true,如下面的案例所示
+```
+if (0n) {
+  console.log('if');
+} else {
+  console.log('else');
+}
+// else
+```
+* 比较运算符和相等运算符允许BigInt与其他类型的值进行混合运算，因为这样不会丢失精度
+```
+0n < 1 // true
+0n < true // true
+0n == 0 // true
+0n == false // true
+0n === 0 // false
+```
