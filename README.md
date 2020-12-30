@@ -976,3 +976,381 @@ if (0n) {
 0n == false // true
 0n === 0 // false
 ```
+
+## 函数的扩展
+### 函数参数的默认值
+* 在es6之前，不能直接为函数的参数只当默认值，只能采用变通的方式，如下面所示
+```
+function log(x, y) {
+    y = y || 'world'
+    console.log(x, y)
+}
+```
+* 但是在es6允许为函数的参数设置默认值，即直接写在参数定义的后面，如下所示
+```
+function log(x, y = 'world') {
+    console.log(x, y);
+}
+```
+* 使用上述的方式来写由以下的两个好处：
+    * 可以使得阅读代码的人，立刻认识到哪些参数可以省略，不用看函数体
+    * 有利于将来代码的优化
+* 参数变量是在默认声明的，所以不能用let和const再次声明，如下所示
+```
+function foo(x = 5) {
+    let x = 1; //error
+    const x = 2; //error
+}
+```
+* 在使用参数默认值时，函数不能有同名参数,如下所示
+```
+function foo(x, x, y) {
+    //不报错
+}
+function foo(x, x, y = 1) {
+    //报错
+}
+```
+* 此外需要注意的一个地方就是，参数默认值不是传值的，而是每次都重新计算默认表达式的值，也就是说，参数默认值是惰性求值的。如下所示：
+```
+let x = 99;
+function foo(p = x + 1) {
+    console.log(p);
+}
+
+foo();
+x = 100;
+foo();
+```
+
+### 与解构赋值默认值结合使用
+* 参数默认值可以与解构赋值的默认值多结合起来使用，如下面所示
+```
+function foo(x, y = 5) {
+    console.log(x, y);
+}
+foo({})
+foo({x: 1})
+foo({x: 1, y = 3})
+foo() //会报参数错误
+```
+* 在上面的这种方式重，只使用了对象的解构赋值默认值，没有使用函数参数的默认值。只有当函数foo的参数是一个对象时，变量x和y才会通过解构赋值生成。如果函数foo调用时没有提供参数，变量x和y就不会生成，从而报错，因此可以采用下面的这种方式来进行避免
+```
+function foo({x, y = 5} = {} {
+    console.log(x, y);
+})
+```
+* 第二种解构默认值的方式，如下面所示
+```
+function fetch(url, { body = '', method = 'GET' , headers = {}} = {}) {
+    console.log(method);
+}
+```
+
+### 参数默认值的位置
+* 通常情况下，定义了默认值的参数，应该是在函数的尾参数，因此这样比较容易看出来，到底是省略了哪些此参数。如果非尾部的参数设置了默认值，实际上这个参是没有办法省略的。如下所示
+```
+function f(x = 1, y) {
+    return [x, y];
+}
+f() // [1, undefined]
+f(,1) // 报错
+```
+* 如果传入Undefined，就会去触发该参数是不是等于默认值，null则没有这个效果
+
+### 函数的length属性
+* 指定了默认值后，函数的length属性，将返回没有指定默认值的参数个数。也就是说，指定了默认值后，length属性将失真。如下面的案例所示
+```
+(function(a) {}).length // 1
+(function(a = 1) {}).length // 0
+(function(a, b, c = 1)).length // 2
+```
+* 关于length属性的含义是：该函数预期传入的函数个数。某个参数指定默认值以后，预期传入的参数个数就不包括这个参数。这样在下面提到的rest参数也不会被记入length属性当中
+```
+(function(...args){}).length // 0
+```
+* 如果设置了默认值的参数不是尾参数，那么length属性也就不会在记入后面的参数了，如下所示
+```
+(function(a = 0, b, c) {}).length // 0
+(function(a, b, c = 2)).length // 2;
+```
+
+### 作用域
+* 一旦设置了参数的默认值，函数在进行声明初始化时，参数会形成一个单独的作用域。等到初始化结束，这个作用域就会消失。这种语法行为，在不设置参数默认值时，是不会出现的
+```
+var x = 1;
+function f(x, y = x) {
+    console.log(y);
+}
+f(2) //2
+```
+* 在上面的代码中，参数y的默认值等于变量x。调用函数f时，参数形成一个单独的作用域。在这个作用域中，默认值变量x指向第一个参数x，而不是全局变量x，所以输出2。在看下面的案例
+```
+var x = 1;
+function f(y = x) {
+    let x = 2;
+    console.log(y);
+}
+f() //1
+```
+* 在上面的案例中，函数f调用时，函数y=x形成了一个单独的作用域，在这个作用域中，变量x本身没有定义，所以执行外层的全局变量x。函数调用时，函数体内内部的局部变量x影响不到默认值变量x
+
+* 应用：利用函数默认值，可以指定某一个参数不能够省略，如果省略就抛出一个错误
+```
+function throwIMissing() {
+    throw new Error('Missing parameter');
+}
+
+function foo(mustBeProvided = throwIfMissing()) {
+    return mustBeProvided;
+}
+```
+
+### rest参数
+* 在es6中引入了rest参数(形式为...变量名)，用于去获取函数的多余参数，这样就不需要使用arguments对象。rest参数搭配的变量是一个数组，该变量将多余的参数放入数组中，如下面的案例所示
+```
+function add(...values) {
+    let sum = 0;
+    for(let i of values) {
+        sum += i;
+    }
+    return sum;
+}
+add(2, 5, 10) // 17;
+```
+* **注意rest参数之后不能再有其他参数(即只能是最后一个参数)，否则就会报错**，如下面所示
+```
+function f(a, ...b, c) {
+    //error
+}
+```
+
+### 严格模式
+* 在es5开始，函数内部可以设定为严格模式，如下所示
+```
+function doSomething (a, b) {
+    "use strict";
+}
+```
+* 在es6中做出了一点修改，如果函数参数使用了默认值、解构赋值、或者扩展运算符，那么在函数内部就不能显示的谁当为严格模式，否则就会报错
+```
+// 报错
+function doSomething(a, b = a) {
+  'use strict';
+  // code
+}
+
+// 报错
+const doSomething = function ({a, b}) {
+  'use strict';
+  // code
+};
+
+// 报错
+const doSomething = (...a) => {
+  'use strict';
+  // code
+};
+
+const obj = {
+  // 报错
+  doSomething({a, b}) {
+    'use strict';
+    // code
+  }
+};
+```
+
+### name属性
+* 函数的name属性，返回该函数的函数名，如下所示
+```
+function foo() {
+
+}
+foo.name // foo
+```
+* 这个属性早就被浏览器所广泛支持，但是到了es6，才将其卸载标准当中
+* 需要注意的是，es6对这个属性的行为做了一些修改，如果将一个匿名和赋值给一个变量，es5
+的name属性，会返回空字符串，而es6的name属性会返回实际的函数名称, 如下面的案例所示
+```
+var f = function () {}
+
+//es5
+f.name // ''
+
+//es6
+f.name // 'f'
+```
+* 如果将一个具有名字的函数赋值给一个变量，那么在es5和es6中的name属性都会返回这个具名函数原本的名称。
+```
+const bar = function baz() {};
+
+// ES5
+bar.name // "baz"
+
+// ES6
+bar.name // "baz"
+```
+* Function构造函数返回的函数实例，name属性的值为anonymous
+```
+(new Function).name //anonymous
+```
+* bind返回的函数，name属性值会加上bound前缀
+```
+function foo() {}
+foo.bind({}).name // "bound foo"
+```
+
+### 箭头函数
+* 箭头函数的基本用法，在es6中允许使用"箭头"，(=>)定义函数，如下所示
+```
+var f = v => v;
+
+// 等同于
+var f = function (v) {
+  return v;
+};
+```
+* 如果箭头函数不需要参数或需要多个参数，就可以使用一个原括号来代表参数部分
+```
+var f = () => 5;
+// 等同于
+var f = function () { return 5 };
+
+var sum = (num1, num2) => num1 + num2;
+// 等同于
+var sum = function(num1, num2) {
+  return num1 + num2;
+};
+```
+* 如果箭头函数的代码块部分多余了一条语句，就要使用大括号将他们包裹起来，并且使用return语句
+```
+var sum = (num1, num2) => { return num1 + num2; }
+```
+* 或者使用()的形式表示返回值
+```
+let getTempItem = id => ({ id: id, name: "Temp" });
+```
+* 箭头函数可以与变量解构结合,如下面的案例所示
+```
+const full = ({first, last}) => first + '' + last;
+
+//等同于下面的这种形式
+function full(person) {
+    return person.first + "" + person.last;
+}
+```
+* 在使用箭头函数的过程中需要注意的点
+    * 函数体内到的this对象，就是定义时所在的对象，而不是使用时所在的对象
+    * 不可以当作构造函数，也就是说，不可以使用new命令，否则就会报错
+    * 不可以使用arguments对象，当对象在函数体内不存在时，如果要用，可以使用rest参数代替
+    * 不可以使用yield命令，因为箭头函数不能用不做Generator函数
+* 在使用箭头函数的过程中可以让this指向固定化，这种特性有利于封装回调函数。下面是一个案例
+```
+var handler = {
+  id: '123456',
+
+  init: function() {
+    document.addEventListener('click',
+      event => this.doSomething(event.type), false);
+  },
+
+  doSomething: function(type) {
+    console.log('Handling ' + type  + ' for ' + this.id);
+  }
+};
+```
+* 在下面的这个案例中用于去判断打印出的值，如下所示
+```
+function foo() {
+  return () => {
+    return () => {
+      return () => {
+        console.log('id:', this.id);
+      };
+    };
+  };
+}
+
+var f = foo.call({id: 1});
+
+var t1 = f.call({id: 2})()(); // id: 1
+var t2 = f().call({id: 3})(); // id: 1
+var t3 = f()().call({id: 4}); // id: 1
+```
+* 为什么会得到上面所述的值呢，因为在箭头函数中只有一个this，它们的this其实都是最外层foo函数到的this
+* 除了this,以下三个变量在箭头函数之中也是不存在的，指向外层函数的对应变量：arguments、super、new.target
+```
+function foo() {
+  setTimeout(() => {
+    console.log('args:', arguments);
+  }, 100);
+}
+
+foo(2, 4, 6, 8)
+// args: [2, 4, 6, 8]
+```
+* 另外，由于箭头函数中没有自己的this,所以不能够用call()  apply() bind()这些方法去改变this指向
+
+### 不适用的场景
+* 在使用箭头函数的过程中需要注意以下的两点，因为箭头函数让this从动态变为了静态
+    * 第一个场合时定义对象的方法时，并且该方法内部包括this
+    ```
+    const cat = {
+    lives: 9,
+    jumps: () => {
+        this.lives--;
+        }
+    }
+    ```
+    * 第二个场合是需要动态this的时候，也不应该使用箭头函数
+    ```
+    var button = document.getElementById('press');
+    button.addEventListener('click', () => {
+    this.classList.toggle('on');
+    });
+    ```
+
+### 嵌套的箭头函数
+* 在箭头函数的内部，还可以使用箭头函数来进行嵌套，如下面所示
+```
+let insert = (value) => ({into: (array) => ({after: (afterValue) => {
+  array.splice(array.indexOf(afterValue) + 1, 0, value);
+  return array;
+}})});
+
+insert(2).into([1, 3]).after(1); //[1, 2, 3]
+```
+
+### 函数参数的尾逗号
+* 在es2017允许函数的最后一个参数是有逗号，在此之前，函数定义和调用时，都不允许最后一个参数后面出现逗号。如下所示
+```
+function clownsEverywhere(
+  param1,
+  param2,
+) { /* ... */ }
+
+clownsEverywhere(
+  'foo',
+  'bar',
+);
+```
+
+### Function.prototype.ToString()
+* 在es2019中对函数实例的toString()方法做出修改，toString()方法返回函数代码本身，以前会省略注释和空格，如下所示
+```
+function /* foo comment */ foo () {}
+
+foo.toString()
+// function foo() {}
+```
+
+### catch命令的参数省略
+* js语言的try...catch结构，在之前都明确的要求catch后面必须跟参数，接受try代码快抛出的错误对象，在es2019做出了改变，允许可以省略参数，如下所示
+```
+try {
+  // ...
+} catch {
+  // ...
+}
+```
