@@ -1354,3 +1354,148 @@ try {
   // ...
 }
 ```
+
+## 数组扩展方法
+### 扩展运算符
+* 扩展运算符是三个点(...)，好比rest参数的逆运算，将一个数组转为用逗号分隔的参数序列，如下所示
+```
+console.log(...[1,2,3])
+console.log(1,...[2,3,4],5)
+```
+
+### 替代函数的apply方法
+* 由于扩展运算符可以展开数组，所以不需要apply方法，将数组转为函数的参数，如下所示
+```
+// ES5 的写法
+function f(x, y, z) {
+  // ...
+}
+var args = [0, 1, 2];
+f.apply(null, args);
+
+// ES6的写法
+function f(x, y, z) {
+  // ...
+}
+let args = [0, 1, 2];
+f(...args);
+```
+
+### 扩展运算符的应用
+* 复制数组，数组是复合的数据类型，直接复制的话，只是复制了执行底层数据结构的指针，而不是克隆一个全新的数组。
+```
+const a1 = [1, 2];
+// 写法一
+const a2 = [...a1];
+// 写法二
+const [...a2] = a1;
+```
+* 合并数组，扩展数组提供了数组合并的新写法，不去使用concat函数，而是使用扩展运算符不过这两种方式都是浅拷贝，因此在使用时需要注意
+```
+const a1 = [{ foo: 1 }];
+const a2 = [{ bar: 2 }];
+
+const a3 = a1.concat(a2);
+const a4 = [...a1, ...a2];
+
+a3[0] === a1[0] // true
+a4[0] === a1[0] // true
+```
+* 与结构赋值结合，扩展运算符可以与解构赋值结合起来生成新的数组
+```
+// ES5
+a = list[0], rest = list.slice(1)
+// ES6
+[a, ...rest] = list
+```
+* 字符串，扩展运算符还可以将字符串转为真正的数组，如下所示
+```
+[...'hello] // ['h', 'e', 'l', 'l', 'o']
+```
+* 实现了iterator接口的对象，任何定义了遍历器接口的对象，都可以用扩展运算符将其转为真正的数组，如下所示
+```
+let nodeList = document.querySelectorAll('div');
+let array = [...nodeList]
+```
+* 对于那些没有部署Iterator接口的类数组，扩展运算符就无法将其转为真正的数组
+```
+let arrayLike = {
+    '0': 'a',
+    '1': 'b',
+    '2': 'c',
+    length: 3
+}
+```
+* 在上面的实例中，arrayLike是一个类数组，但是没有奴书Iterator接口，扩展运算符就会报错，这是可ui改为Array.from方法将arrayLike转为真正的数组
+
+* Map和Set解构,Generator函数
+* 扩展运算符内部调用的是数组解构的Iterator接口，因此只要具有Iterator接口的对象，都可以使用扩展运算符，比如Map结构，如下所示：
+```
+let map = new Map([
+    let map = new Map([
+    [1, 'one'],
+    [2, 'two'],
+    [3, 'three'],
+]);
+let arr = [...map.keys()]; //[1, 2, 3]
+```
+* Generator函数运行后，返回一个遍历对象，因此也可以使用扩展运算符
+```
+const go = function *() {
+    yield 1;
+    yield 2;
+    yield 3;
+}
+[...go()]; // [1, 2, 3]
+```
+* 在这段代码中，变量go是一个generator函数，执行返回的是一个遍历器对象，对这个遍历器对象执行扩展运算符，就会将内部遍历得到的值，转为一个数组，如果对没有Iterator接口的函数，使用扩展运算符，将会报错
+
+### Array.from()
+* Array.from()方法用于将两类对象转为真正的数组：类数组和Iterable的对象(包括Map和Set数据结构)
+* 对于传入参数的说明
+ * 如果参数是一个真正的数组，Array.from会返回一个一模一样的数组
+ * 需要注意的是扩展运算符也可以将某些数据结构转为数组，如类数组中含有Iterable接口的
+ * Array.from还可以接受第二个参数，作用类似于数组的map方法，用来对每个㢝进行处理，将处理后的值放入返回的数组，如下所示
+ ```
+ Array.from(arrayLike, x => x * x);
+// 等同于
+Array.from(arrayLike).map(x => x * x);
+
+Array.from([1, 2, 3], (x) => x * x)
+// [1, 4, 9]
+ ```
+
+* 如果map函数里面用到了this关键字，还可以传入Array.from的第三个参数，用来绑定this
+* Array.from还可以将各种值转为真正的数组，并且还提供map功能。这实际上一位着，只有一个原始的数据结构，你就可以先对它的值进行处理，然后转换成规范的数组结构，进而就可以使用数量众多的数组方法
+```
+Array.from({length: 2}, () => 'jack')
+```
+* Array.from()的另一个应用是，将字符串转为数组，然后返回字符串的长度，因为它能正确处理各种Unicode字符，可以避免js将大于\uFFFF的Unicode字符，算作两个字符的bug
+
+### Array.of()
+* 该方法用于将一组值，转化为数组
+```
+Array.of(3, 11, 8);// [3, 11, 8]
+Array.of(2); //[2]
+Array.of(3).length // 1
+```
+* 这个方法的主要目的，是弥补数组构造函数Array()的不足，因为参数个数的不同，会导致Array()的行为差异
+```
+Array() // []
+Array(3) //[ , , ,]
+Array(3, 11, 8) // [3, 11, 8]
+```
+* Array.of总是返回参数值组成的数组，如果没有参数，就返回一个空数组，该方法的模拟过程如下：
+```
+function ArrayOf() {
+    return [].slice.call(arguments);
+}
+```
+
+### 数组的实例copyWithin()
+* 数组实例的copyWithin()方法，在当前数组内部，将指定位置的成员复制到其他位置(会覆盖掉原有成员)，然后返回当前数组，也就是说，使用这个方法，会修改掉当前的数组
+```
+Array.prototype.copyWithin(target, start = 0, end = this.length)
+```
+* 该方法的参数说明
+    
