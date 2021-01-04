@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-11-26 15:36:17
- * @LastEditTime: 2020-12-25 18:33:59
+ * @LastEditTime: 2021-01-04 18:40:09
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /work/daily_study/project.md
@@ -343,3 +343,18 @@ FancyInput = forwardRef(FancyInput);
 ```
     const hRef = useRef<HTMLVideoElement>();
 ```
+
+### 关于实际项目中的一些使用技巧上的操作方式
+* 在通常情况下，如果在需要采用表达式的方式来书写一个if语句，可以采用下面的这种方式来处理
+```
+    if(!getStatus(val)) { getResult(val, renderItem, 1) }
+    //等同于
+    !getStatus(val) && getResult(val, renderItem, 1)
+```
+
+* 项目中关于数据渲染的处理方式，在通常的情况下，数据在最终渲染时一定是数据好的最后结果，这样的好处在与相比较与在渲染的过程中来处理数据而言，其页面
+加载的速度更快，所呈现出来的效果更好
+
+* 强迫浏览器创建图层，在Blink和WebKit的浏览器中，⼀当⼀个节点被设定了透明度的相关过渡效果或动画时，浏览器会将其作为⼀个单独的图层，但很多开发者使⽤
+translateZ(0)或者translate3d(0,0,0)去使浏览器创建图层。这种⽅式可以消除在动画开始之前的图层创建时间，使得动画尽快开始（创建图层和绘制图层还是⽐较慢
+的），⽽且不会随着抗锯⻮⽽导出突变。不过这种⽅法需要节制，否则会因为创建过多的图层导致崩溃
