@@ -1498,4 +1498,121 @@ function ArrayOf() {
 Array.prototype.copyWithin(target, start = 0, end = this.length)
 ```
 * 该方法的参数说明
+    * target(必须)： 从该位置开始替换数据，如果是负值，则表示倒数
+    * start(可选)：从该位置开始读取数据，默认为0，如果是负数，表示从末尾开始计算
+    * end(可选)： 到该位置前停止读取数据，默认等于数组 长度。如果是负值，表示从末尾开始计算
+* 这三个参数都是数值，如果不是，会自动转为数值，如下面的案例所示
+```
+[1, 2, 3, 4, 5].copyWithin(0, 3)
+// [4, 5, 3, 4, 5]
+
+// 将3号位复制到0号位
+[1, 2, 3, 4, 5].copyWithin(0, 3, 4)
+// [4, 2, 3, 4, 5]
+```
+
+### 数组实例的find()和findIndex()
+* 数组的find方法，用于找出第一个符合条件的数组成员。他的参数是一个回调函数，所有数组成员一次执行该回调函数，直到找到第一个返回值的true的成员，然后返回该成员。如果没有找到符合条件的成员，直接返回undefined
+```
+[1, 4, -5, 10].find(n => n < 0)
+//-5
+```
+* 数组的findIndex方法与数组的find方法类似，如果不符合条件就返回-1，符合条件就返回当前数组的成员的位置
+
+### 数组实例的fill()
+* fill方法使用给定一个定值，填充一个数组
+```
+['a', 'b', 'c'].fill(7)
+//[7, 7, 7]
+
+new Array(3).fill(7);
+//[7, 7, 7]
+```
+* fill方法还可以接受剩余的两个参数，用来指定填充的起始位置和结束位置，如下所示
+```
+['a', 'b', 'c'].fill(7, 1, 2)
+// ['a', 7, 'c']
+```
+
+### 数组实例的entires()  keys() values()
+* 上述的三个方法都用于遍历数组，都可以用for...of循环进行遍历，唯一的区别在于keys是对键名的遍历，values是对键值的遍历，entries是对键值对的遍历，如下所示
+```
+for (let index of ['a', 'b'].keys()) {
+  console.log(index);
+}
+// 0
+// 1
+
+for (let elem of ['a', 'b'].values()) {
+  console.log(elem);
+}
+// 'a'
+// 'b'
+
+for (let [index, elem] of ['a', 'b'].entries()) {
+  console.log(index, elem);
+}
+// 0 "a"
+// 1 "b"
+```
+
+### 数组实例的includes()方法
+* Array.prototype.includes方法返回一个布尔值，表示某个数组是否包含给定的值，与字符串的includes方法类似。
+```
+[1, 2, 3].includes(2)     // true
+[1, 2, 3].includes(4)     // false
+[1, 2, NaN].includes(NaN) // true
+```
+* 该方法的第二个参数的起始位置，默认为0，如果第二个参数为负数，则表示倒数的位置，没有该方法之前采用的是indexOf方法
+
+### 数组实例的flat(), flatMap()
+#### flat
+* flat方法，数组扁平化，将多维数组转化为一个一维数组的过程，该方法返回一个新的数组，对原数据没有影响
+* 对于flat方法的说明，在默认情况下该方法表示只能拉平一层，传入多少的数值就表示需要扁平化多少层，也可以使用Infinity关键字作为参数，这样就表示能将一个不管是几维的数组都能转化为一个一维的数组
+* 如果在原数组有空位，则flat方法会跳过空位
+
+#### flatMap()
+* 该方法对原数组的每个成员执行一个函数(相当于执行Array.prototype.map())，然后对返回值组成的数组执行flat方法。该方法返回一个新数组，不改变原数组
+```
+[2, 3, 4].flatMap((x) => [x, x * 2])
+// [2, 4, 3, 6, 4, 8]
+```
+
+### 数组的空位
+* 数组的空位，指的是某一个位置没有任何值。比如Array构造函数返回的数组都是空位
+* 在es5中对于空位的处理
+    * forEach filter reduce every some都会跳过空位
+    * map会跳过空位，但会保留这个值
+    * join和toString会将空位是为undefined, 而undefined和null会被处理成空字符串
+```
+[,'a'].forEach((x,i) => console.log(i)); // 1
+
+// filter方法
+['a',,'b'].filter(x => true) // ['a','b']
+
+// every方法
+[,'a'].every(x => x==='a') // true
+
+// reduce方法
+[1,,2].reduce((x,y) => x+y) // 3
+
+// some方法
+[,'a'].some(x => x !== 'a') // false
+
+// map方法
+[,'a'].map(x => 1) // [,1]
+
+// join方法
+[,'a',undefined,null].join('#') // "#a##"
+
+// toString方法
+[,'a',undefined,null].toString() // ",a,,"
+```
+* 在es6中明确将空位转为undefined
+    * Array.form方法会将数组的空位，转为undefined
+    * 扩展运算符也会将空位转为undefined
+    * copyWithin会连空位一起拷贝
+    * fill会将空位是为征程的数组位置
+    * for...of循环会遍历空位
+    * entries, keys, values, find, findIndex会将空位处理成undefined
     
