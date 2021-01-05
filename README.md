@@ -1615,4 +1615,123 @@ for (let [index, elem] of ['a', 'b'].entries()) {
     * fill会将空位是为征程的数组位置
     * for...of循环会遍历空位
     * entries, keys, values, find, findIndex会将空位处理成undefined
-    
+
+## 对象的扩展
+### 属性的简洁表达式
+* 在es6中允许在大括号里面，直接写入变量和函数，作为对象的属性和方法。下面是一些常用的实际案例
+```
+function f(x, y) {
+  return {x, y};
+}
+
+// 等同于
+
+function f(x, y) {
+  return {x: x, y: y};
+}
+
+f(1, 2) // Object {x: 1, y: 2}
+```
+* 实际运用中的CommonJS模块输出一组变量的方式
+```
+let ms = {};
+
+function getItem (key) {
+  return key in ms ? ms[key] : null;
+}
+
+function setItem (key, value) {
+  ms[key] = value;
+}
+
+function clear () {
+  ms = {};
+}
+
+module.exports = { getItem, setItem, clear };
+// 等同于
+module.exports = {
+  getItem: getItem,
+  setItem: setItem,
+  clear: clear
+};
+```
+* 属性的setter和getter,实际上也是采用的这种方式来书写
+```
+const cart = {
+  _wheels: 4,
+
+  get wheels () {
+    return this._wheels;
+  },
+
+  set wheels (value) {
+    if (value < this._wheels) {
+      throw new Error('数值太小了！');
+    }
+    this._wheels = value;
+  }
+}
+```
+
+### 属性名表达式
+* 在js中有两种取对象属性的方式
+```
+const obj = {
+    foo: 123
+}
+
+//first method
+obj.foo
+
+//second method
+obj['foo']
+```
+
+* 在es6中允许字面量对应对象时，可以采用表达式的方式作为对象的属性名，即把表达式放在括号之中
+```
+let propKey = 'foo';
+
+let obj = {
+  [propKey]: true,
+  ['a' + 'bc']: 123
+};
+```
+* 在对象中采用表达式的方式还可以用于定义方法名
+```
+let obj = {
+    ['h' + 'ello']() {
+        return 'hi';
+    }
+}
+obj.hello();
+```
+* 需要注意是属性名表达式如果是一个对象，默认情况喜爱会自动将对象转为字符串，这一点在使用的过程中要非常的小心
+
+### 属性的可枚举性和遍历
+* 可枚举性，对象的每个属性都有一个描述对象，用来控制该属性的行为Object.getOwnPropertyDescripty方法可以获取该属性的描述对象
+```
+let obj = { foo: 123 };
+Object.getOwnPropertyDescriptor(obj, 'foo')
+//  {
+//    value: 123,
+//    writable: true,
+//    enumerable: true,
+//    configurable: true
+//  }
+```
+* 在上面这四个属性中的enumerable属性，称为可枚举性，如果该属性是false，就表示某些操作会忽略掉当前属性
+* 目前有四个操作会忽略到enumerable为false的属性
+    * for...in属性，只遍历对象自身的和继承的可枚举的属性
+    * Object.keys(),返回对象自身的所有可枚举的属性的键名
+    * JSON.stringify(),只串行化对象自身的可枚举的属性
+    * Object.assign(): 忽略enumerable为false的属性，只拷贝对象自身的可枚举的属性
+
+属性的遍历
+* 在es6中一共有5种方法可以遍历对象的属性
+    * for...in，循环遍历对象自身的和继承的可枚举属性，不含Symbol
+    * Object.keys(obj),返回一个数组，包括对象自身的(不包含继承的)所有可枚举属性的键名,Symbol属性
+    * Object.getOwnPropertyNames(obj),返回一个数组，包含对象自身的所有属性，不包含Symbol属性的键名，但是包含不可枚举属性的键名
+    * Object.getOwnPropertySymbols(obj),返回一个数组，包含对象自身的所有 Symbol 属性的键名。
+    * Reflect.ownKeys(obj)， 返回一个数组，包含对象自身的（不含继承的）所有键名，不管键名是 Symbol 或字符串，也不管是否可枚举。
+
