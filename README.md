@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-11-26 15:36:17
- * @LastEditTime: 2021-01-04 18:40:09
+ * @LastEditTime: 2021-01-05 16:55:32
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /work/daily_study/project.md
@@ -358,3 +358,26 @@ FancyInput = forwardRef(FancyInput);
 * 强迫浏览器创建图层，在Blink和WebKit的浏览器中，⼀当⼀个节点被设定了透明度的相关过渡效果或动画时，浏览器会将其作为⼀个单独的图层，但很多开发者使⽤
 translateZ(0)或者translate3d(0,0,0)去使浏览器创建图层。这种⽅式可以消除在动画开始之前的图层创建时间，使得动画尽快开始（创建图层和绘制图层还是⽐较慢
 的），⽽且不会随着抗锯⻮⽽导出突变。不过这种⽅法需要节制，否则会因为创建过多的图层导致崩溃
+
+### antd中warning解决
+* 在upload.tsx文件中有两个关于warning问题，下面从源码中来处理，源码链接如上[https://github.com/ant-design/ant-design/blob/master/components/upload/Upload.tsx](https://github.com/ant-design/ant-design/blob/master/components/upload/Upload.tsx)
+```
+ React.useEffect(() => {
+    devWarning(
+      'fileList' in props || !('value' in props),
+      'Upload',
+      '`value` is not a valid prop, do you mean `fileList`?',
+    );
+
+    devWarning(
+      !('transformFile' in props),
+      'Upload',
+      '`transformFile` is deprecated. Please use `beforeUpload` directly.',
+    );
+  }, []);
+```
+* 在上面的源码warning部分有一个devWaring方法，该方法有三个参数
+    * 第一个参数是返回的是一个boolean值
+    * 第二个参数是组件名称
+    * 第三个是提示文案
+* 关于以上两个warning的解决方式，第一个是需要传入valuePropName属性与name属性值即可解决，第二个解决方式则是需要传入transformFile属性即可解决
