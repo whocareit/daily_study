@@ -1936,3 +1936,166 @@ const headerText = response.settings.headerText ?? 'Hello, world!';
 const animationDuration = response.settings.animationDuration ?? 300;
 const showSplashScreen = response.settings.showSplashScreen ?? true;
 ```
+
+## 对象的新增方法
+### Object.is()
+* es5比较两个值是否相等，只有两个运算符: 相等运算符 == 与 严格相等运算符 ===, 它们都有各自的缺点，前者会自动转换数据类型，后者的NaN不等于自身，以及+0等于-0，
+js缺乏一种运算，在所有的环境中，只要两个值是一样的，就应该相等
+* 在es6提出了"some-value equality"算法，用来解决这个问题。Object.is就是部署这个算法的新方法。用来比较两个值是否严格相等，与严格相等比较的行为基本一致,实际案例
+```
+Object.is('foo', 'foo')
+// true
+Object.is({}, {})
+// false
+```
+* 不同之处有两个:  一是+0不等于-0，而是NaN等于自身，如下所示
+```
++0 === -0 // true
+NaN === NaN // false
+
+Object.is(+0, -0) //false
+Object.is(NaN, NaN) //true
+```
+
+### Object.assign()
+* 该方法用于对象的合并，将源对象的所有可枚举属性，复制到目标对象(target)，该方法第一个目标对象，后面的参数是源对象。
+**注意，如果目标对象与源对象有同名属性，或多个源对象有同名属性，则后面的属性会覆盖前面的属性**，如下所示：
+```
+const target = { a: 1, b: 1 };
+
+const source1 = { b: 2, c: 2 };
+const source2 = { c: 3 };
+
+Object.assign(target, source1, source2);
+target // {a:1, b:2, c:3}
+```
+* 对于参数的说明需要注意下面的几点：
+    * 如果只有一个参数，该方法会直接返回该参数
+    * 如果参数不是对象，则会先转换成对象，然后返回
+    * 由于undefined和null无法转成对象，然后返回
+* 注意点：
+    * 浅拷贝，Object.assign()方法实行的是浅拷贝。也就是说，如果源对象某个属性值是对象，那么得到的就是这个对象的引用
+    * 同名属性的替换，对于嵌套的对象，一旦遇到同名属性，该方法处理的方式是用于替换，而不是添加
+    * 该方法可以用来处理数组，但是会把数组视为对象
+    * 取值函数的处理，该方法只能进行值的复制，如果要复制的值是一个取值函数，那么将求值后再复制，如下所示
+    ```
+    const source = {
+    get foo() { return 1 }
+    };
+    const target = {};
+
+    Object.assign(target, source)
+    ```
+* 该方法的用途
+    * 为对象添加属性
+    ```
+    class Point {
+        constructor(x, y) {
+            Object.assign(this, {x, y});
+        }
+    }
+    ```
+    * 为对象添加方法
+    ```
+    Object.assign(SomeClass.prototype, {
+    someMethod(arg1, arg2) {
+        ···
+    },
+    anotherMethod() {
+        ···
+    }
+    });
+
+    // 等同于下面的写法
+    SomeClass.prototype.someMethod = function (arg1, arg2) {
+    ···
+    };
+    SomeClass.prototype.anotherMethod = function () {
+    ···
+    };
+    ```
+    * 克隆对象
+    ```
+    function clone(origin) {
+        return Object.assign({}, origin);
+    }
+    ```
+    * 这种方法克隆，只能克隆原始对象自身的值，不能克隆它继承的值。如果想要保持继承链，可以采用下面的代码
+    ```
+    function clone(origin) {
+        let originProto = Object.getPrototypeOf(origin);
+        return Object.assign(Object.create(originProto), origin);
+    }
+    ```
+    * 合并多个对象
+    ```
+    const merge = (target, ...sources) => Object.assign(target, ...sources);
+    ```
+    * 为属性指定默认值
+    ```
+    const DEFAULTS = {
+        logLevel: 0,
+        outputFormat: 'html'
+    };
+
+    function processContent(options) {
+        options = Object.assign({}, DEFAULTS, options);
+        console.log(options);
+        // ...
+    }
+    ```
+### Object.getOwnPropertyDescriptors()
+* 在es5中的Object.getOwnPropertyDescriptor()方法会返回某个属性描述对象，在es2017中引入的Object.getOwnPropertyDescriptors()方法，
+返回指定对象所有自身属性(非继承属性)的描述对象
+```
+const obj = {
+  foo: 123,
+  get bar() { return 'abc' }
+};
+
+Object.getOwnPropertyDescriptors(obj)
+// { foo:
+//    { value: 123,
+//      writable: true,
+//      enumerable: true,
+//      configurable: true },
+//   bar:
+//    { get: [Function: get bar],
+//      set: undefined,
+//      enumerable: true,
+//      configurable: true } }
+```
+
+### __proto__属性，Object.setPrototypeOf(),Object.getPrototypeOf()
+* __proto__属性，用来读取或设置当前对象的原型对象。目前所有的浏览器包含IE11都部署了这个属性。由于这个属性是浏览器所广泛支持，才被加入到es6中。这个属性
+在除了浏览器之外的属性不一定被部署。因此无论是从语义，还是兼容性的角度，都不要去使用这个属性，而是使用下面的Object.setPrototypeOf(),Object.getPrototypeOf()
+Object.create()代替
+* Object.setPrototypeOf,用于来设置一个对象的原型对象，返回参数对象本身。
+```
+//该方法所等同于的函数
+function setPrototypeOf(obj, proto) {
+    obj.__proto__ = proto;
+}
+
+//es6中推荐使用方式
+// 格式
+Object.setPrototypeOf(object, prototype)
+
+// 用法
+const o = Object.setPrototypeOf({}, null);
+```
+* 对于Object.setPrototypeOf()方法参数的说明，如果第一个参数不是对象，会自动转为对象，由于返回的还是第一个参数，所以这个操作不会产生任何效果，由于undefined和null无法
+转化为对象，所以如果第一个参数是undefined或是null就会报错
+* Object.getPrototypeOf()方法，用于去读取一个对象的原型对象，如下所示
+```
+Object.getPrototypeOf(obj);
+```
+* 对于Object.getPrototypeOf()方法的参数说明，如果参数不是对象，会被自动转为对象，如果参数是undefined或null，它们无法转为对象，就会报错
+
+### Object.keys(), Object.Values(), Object.entries()
+* Object.keys()方法，返回一个数组，成员的参数对象自身的所有可遍历属性的键名
+* Object.values()方法，返回一个数组，成员是参数对象自身所有可遍历属性的键值
+* Object.entries()方法，返回一个数组，成员是参数对象本身的所有可遍历属性键值对数组
+
+### Obeject.fromEntries()
+* 该方法的作用是将一个键值对数组转化为对象，该方法的在主要目的就是将键值对结构还原为对象，因此特别适合与将Map结构转化为对象
