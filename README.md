@@ -1735,3 +1735,204 @@ Object.getOwnPropertyDescriptor(obj, 'foo')
     * Object.getOwnPropertySymbols(obj),返回一个数组，包含对象自身的所有 Symbol 属性的键名。
     * Reflect.ownKeys(obj)， 返回一个数组，包含对象自身的（不含继承的）所有键名，不管键名是 Symbol 或字符串，也不管是否可枚举。
 
+### super关键字
+* this关键字总是指向函数所在的当前对象，es6又新增了另一个类似的关键字super，指向当前对象的原型对象
+```
+const proto = {
+    foo: 'hello'
+}
+
+const obj = {
+    foo: 'world,
+    find() {
+        return super.foo;
+    }
+}
+
+Object.setPrototypeOf(obj, proto);
+obj.find() //"hello"
+```
+* Object.setProyotypeOf(当前对象，当前对象的原型)，用于设置当前对象的原型指向
+* **注意在使用super关键字表示原型对象时，只能用在对象的方法之中，用在其他地方都会出现报错**，如下所示的三种情况都会出现报错：
+```
+const obj = {
+    foo: super.foo
+}
+
+const obj = {
+    foo: () => super.foo;
+}
+
+
+const obj = {
+    foo: function() {
+        return super.foo
+    }
+}
+```
+* 在上面的三种方式中，都会报错。原因是因为对于js引擎来说，这里的super都是没有用在对象的方法之中，第一种方式用在属性林年，第二种
+和第三种写法是super用在一个函数当中，然后赋值给foo属性
+
+### 对象的扩展运算符
+* 对象的解构赋值，用于从一个对象取值，相当于将目标对象自身的所有可遍历的、但是尚未被读取的属性，分配到指定的对象上面。所有的键和
+它们的值都会被拷贝到新的对象上去，如下面的案例所示
+```
+let { x, y, ...z } = {x: 1, y: 2, a: 3, b: 4}
+x // 1
+y // 2
+z // {a: 3, b: 4}
+```
+* 解构赋值要求等号右边是一个对象，如果等号右边是undefined或null，就会报错，因为它们无法转为对象，如下面的案例所示
+```
+let { ...z } = null;
+let { ...z } = undefined;
+```
+* 解构赋值必须是最后一个参数，否则也会报错，如下面的案例所示,两种方式的书写都会出现报错
+```
+let { ...x, y, z } = someObject; 
+let { x, ...y, ...z } = someObject;
+```
+* **需要注意的是，解构赋值的拷贝是浅拷贝，即如果一个键的值事是复合类型的值，那么解构赋值拷贝的是这个值的引用，而不是这个值的副本**，如下面的案例所示
+```
+let obj = { a: { b: 1 } };
+let { ...x } = obj;
+obj.a.b = 2;
+console.log(x.a.b) // 2
+```
+* 此外扩展运算符的解构赋值，不能复制继承自原型对象的属性
+* 扩展运算符，对象的扩展运算符用于取出参数对象的所有可遍历属性，拷贝到当前对象之中，如下面的案例所示
+```
+let z = { a: 3, b: 4};
+let n = {...z};
+```
+* 由于数组是特殊的对象，所以对象的扩展运算符可以用于数组，如果扩展运算符后面是一个空对象，则没有任何效果，如果扩展运算符后面不是对象，则自动将其转为对象。
+但是如果扩展运算符后面是字符串，它会自定转化为一个类似数组的对象，因此返回的不是空对象，对象的扩展符等同于使用Object.assign()，如下所示：
+```
+let aClone = { ...a }
+//等同于
+let aClone = Object.assign({}, a);
+```
+* 拷贝对象原型属性，可以采用下面的方式来进行处理,如下面的案例所示
+```
+//method1
+const clone1 = {
+    __proto__: Object.getPrototypeOf(obj),
+    ...obj
+}
+
+//method2
+const clone2 = Object.assign(
+    Object.create(Object.getPrototypeOf(obj)),
+    obj
+)
+
+//method3
+const clone3 = Obeject.create(
+    Object.getPrototype(obj),
+    Object.getOwnPropertyDescriptors(obj)
+)
+```
+
+* 扩展运算符换可以用于去合并两个对象，如下所示：（Object.assign方法：用于将所有可枚举属性的值从一个或多个源对象分配到目标对象，返回目标对象）
+```
+let ab = { ...a, ...b};
+//等同于
+let ab = Object.assign({}, a, b)
+```
+* 如果用户自定义的属性，放在扩展运算符后面，则扩展运算符内部的同名属性会被覆盖掉。如下所示
+```
+let aWithOverrides = { ...a, x: 1, y: 2 }
+//等同于
+let aWithOverrides = { ...a, ...{ x: 1, y: 2 }}
+//等同于
+let x = 1, y = 2, aWithOverrides = { ...a, x, y }
+//等同于
+let aWithOverrides = Obeject.assign({}, a, , { x: 1, y: 2})
+```
+* 与扩展运算符一样，对象的扩展运算符后面可以跟表达式
+* 扩展运算符的参数对象之中，如果有取值函数get，这个函数会执行的, 如下所示
+```
+let a = {
+    get x() {
+        throw new Error('now throw yet');
+    }
+}
+let aWith = { ...a } //报错
+```
+
+### 链判断运算符
+* 如果读取对象内部的某个属性，往往需要判断一下该对象是否存在，在通常的情况下也会使用三元运算符用于判断对象是否存在，如下面的两种案例所示
+    * 采用&&
+    ```
+    // 错误的写法
+    const  firstName = message.body.user.firstName;
+
+    // 正确的写法
+    const firstName = (message
+    && message.body
+    && message.body.user
+    && message.body.user.firstName) || 'default';
+    ```
+    * 采用三元运算符
+    ```
+    const fooInput = myForm.querySelector('input[name=foo]')
+    const fooValue = fooInput ? fooInput.value : undefined
+    ```
+* 如上面的这两种方式来进行层层判断是非常麻烦的，因此在es2020引入了“链判断运算符”（?.）简化上面的这种书写方式，如下面案例所示
+```
+const firstName = message?.body?.user?.firstName || 'default';
+const fooValue = myForm.querySelector('input[name=foo]')?.value
+```
+* 对于上述的案例说明，在使用该链判断运算符时，表示先判断的对象是否为null或undefined，如果是，就往下面计算，不是则返回undefined
+* 使用这个运算符需要注意下面的几点
+    * 短路机制，?.运算符相当于一种短路机制，只要不满足条件，就不再往下面进行
+    ```
+    a?.[++x]
+    // 等同于
+    a == null ? undefined : a[++x]
+    ```
+    * delete运算符
+    ```
+    delete a?.b
+    //等同于
+    a === null ? undefined : delete a.b
+    ```
+    * 括号的影响，如果属性链有圆括号，链判断运算符对圆括号外部没有影响，支队圆括号内部有影响，如下所示
+    ```
+    (a?.b).c
+    //等同于
+    (a === null ? undefined : a.b).c
+    ```
+    * 报错场合
+    ```
+    // 构造函数
+    new a?.()
+    new a?.b()
+
+    // 链判断运算符的右侧有模板字符串
+    a?.`{b}`
+    a?.b`{c}`
+
+    // 链判断运算符的左侧是 super
+    super?.()
+    super?.foo
+
+    // 链运算符用于赋值运算符左侧
+    a?.b = c
+    ```
+    * 右侧不得为十进制数值，为了保证兼容之前的代码，允许foo?.3:0被解析成foo ? .3 : 0，因此当链判断运算符后面跟一个十进制的数值时，
+    会被认为可能是一个三元运算符
+### Null判断运算符
+* 读取对象属性时，如果某个属性的值是null或undefined，有时候需要为他们指定默认值，常通过||运算符指定默认值，如下所示
+```
+const headerText = response.settings.headerText || 'Hello, world!';
+const animationDuration = response.settings.animationDuration || 300;
+const showSplashScreen = response.settings.showSplashScreen || true;
+```
+* 在上面的这三种方式中，如果属性的值为空字符串或false或0,默认值也会失效，因此为了避免这种情况的发生，在es2020中引入了一个新的Null判断符(??)，
+它的行为与||行为一致，但是只有运算符左侧的值为null或者是undefined时，才会返回右侧的值，如下所示。
+```
+const headerText = response.settings.headerText ?? 'Hello, world!';
+const animationDuration = response.settings.animationDuration ?? 300;
+const showSplashScreen = response.settings.showSplashScreen ?? true;
+```
