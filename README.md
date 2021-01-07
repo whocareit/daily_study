@@ -2325,3 +2325,217 @@ Symbol.keyFor(s2) // undefined
 * Symbol.toStringTag, 指向一个方法。在该对象上面调用Object.prototype.toString方法时，如果这个属性存在，它的返回值会出现
 在toString方法返回的字符串之中，表示对象的类型。也就是说，这个属性可以用来定制[object Object]或[object Array]中object后面的那个字符串。
 * Symbol.unscopables 指向一个对象。该对象指定了使用with关键字时，哪些属性会被with环境排除。
+
+## Set和Map数据结构
+### Set数据结构
+* Set，是es6提供的一种新的数据结构，类似于数组，但成员的值都是唯一的，没有重复的值。其本身一个构造函数，用来生成Set数据结构，如下所示
+```
+const s = new Set();
+
+[2, 3, 5, 4, 5, 2, 2].forEach(x => s.add(x));
+
+for (let i of s) {
+    console.log(i);
+}
+
+// 2 3 4 5
+```
+* 在上面的代码中通过add()方法向Set结构加入成员，通过结构可以看出Set结构不会添加重复的值
+* Set函数可以接受一个数组(或者具有iterable接口的其他数据结构)作为参数，用来初始化，如下所示
+```
+const set = new Set([1, 2, 3, 4, 4, 2]);
+[...set] // [1, 3]
+```
+* 使用Set数据结构来去除数组重复成员，以及去除字符串重复字符的方式
+```
+//数组去重的方式
+[...new Set(array)]
+
+//字符串去重的方式
+[...new Set('ababsa')].join('');
+```
+* 在使用Set这个数据结构时，需要注意的就是其内部判读两个值是否不同，使用的算法叫做“same-value-zero equality”，类似于精确相等运算符，主要区别在与Set加入值时认为NaN是等于其自身
+
+### Set实例的属性和方法
+* 在Set结构中有以下属性：
+    * Set.prototype.constructor: 构造函数，默认就是Set函数
+    * Set.prototype.size: 返回Set实例的成员总数
+* Set实例的方法分为两大类：操作方法(用于操作数据)和遍历方法(用于遍历成员)
+    * Set.prototype.add(value): 添加某个值，返回Set结构本身
+    * Set.prototype.delete(value): 删除某个值，返回一个布尔值，表示删除是否成功
+    * Set.prototype.has(value): 返回一个布尔值，表示该值是否为Set成员
+    * Set.prototype.clear(): 清除所有成员，没有返回值
+* Array.from方法可以将Set结构转为数组，因而可以使用该方法来实现数组去重如下面的案例所示
+```
+const items = new Set([1, 2, 3, 4, 5, 6])
+const array = Array.from(items);
+```
+* 遍历操作，Set结构的实例有四个遍历方法，可以用于遍历成员
+    * Set.prototype.keys(): 返回键名的遍历器；
+    * Set.prototype.values(): 返回键值的遍历器
+    * Set.prototype.entries(): 返回键值对的遍历器
+    * Set.prototype.forEach(): 使用回调函数遍历每一个成员
+* 需要注意的是**set的遍历顺序就是插入顺序**这个特性在有时是非常有用的，比如使用Set保存一个回调函数列表，调用时就能保证添加顺序调用
+    1. keys(), values(), entries(),这三个方法都是遍历器对象。由于Set结构没有键名，只有键值，所以keys方法和values方法的行为完全一致
+    ```
+    let set = new Set(['red', 'green', 'blue']);
+
+    for (let item of set.keys()) {
+    console.log(item);
+    }
+    // red
+    // green
+    // blue
+
+    for (let item of set.values()) {
+    console.log(item);
+    }
+    // red
+    // green
+    // blue
+
+    for (let item of set.entries()) {
+    console.log(item);
+    }
+    // ["red", "red"]
+    // ["green", "green"]
+    // ["blue", "blue"]
+    ```
+    * Set结构的实例默认可遍历，他的默认遍历器生成函数就是它的values方法。这意味着，可以省略values方法，直接用for...of循环遍历Set
+    2. forEach(),Set结构的实例和数组一样，也拥有forEach方法，用于对每个成员执行某种操作，没有返回值，如下所示
+    ```
+    let set = new Set([1, 4, 9]);
+    set.forEach((value, key) => console.log(key+ ':' + value))
+    ```
+    3. 遍历的应用，扩展运算符内部使用for...of循环，所以也可以用Set结构，因而采用扩展运算符和Set结构相结合，就可以去除数组的重复成员
+
+### WeakSet
+* 含义：与Set类似，也是不重复的值的集合，但是它与Set有两个区别，首先WeakSet的成员只能是对象，而不能是其他类型的值。其次就是WeakSet中的对象都是弱引用，即不考虑垃圾回收机制不考虑WeakSet对该对用的引用。换句话说，如果其他对象都不再引用该对象，那么垃圾回收机制会自动回收该对象所占用的内存，不考虑该对象是否还存在与WeakSet之中
+* 语法说明：WeakSet是一个构造函数，可以使用new命令，创建WeakSet数据结构，作为构造函数，WeakSet可以接受一个数组或类似数组的对象作为参数。(实际上，任何具有Iterable接口的对象，都可以作为weakSet的参数)，该数组的所有成员，都会自动成为WeakSet实例对象的成员，如下所示：
+```
+const a = [[1, 2], [3, 4]];
+const ws = new WeakSet(a);
+// WeakSet {[1, 2], [3, 4]}
+```
+* WeakSet结构有下面的三个方法
+    * WeakSet.prototype.add(value): 向WeakSet实例中添加一个新成员
+    * WeakSet.prototype.delete(value): 清除WeakSet实例的指定成员
+    * WeakSet.prototype.has(value): 返回一个布尔值，表示某个值是是否在WeakSet实例之中
+* 在WeakSet中没有Size属性，没有办法遍历它的成员，因为成员都是弱引用的，随时可能消失，遍历机制无法保证成员的存在，很有可能刚刚遍历结束，成员就取不到了。WeakSet的一个用处，是存储DOM节点，而不用担心这些节点从文档中移除，而引发的内存泄露
+### Map
+* 含义和基本用法，在js中的对象，本质上是键值对的集合(Hase结构)，但是传统上只能用字符串当作键，这给它的使用带来很大的限制。因此，为了解决这个问题，es6提供了Map数据结构，它类似与对象，也是键值对的集合，但是键的范围不限于字符串，各种类型的值(包括对象)都可以当作键。简而言之就是Obejct结构提供了“字符串-值”的对应关系，Map结构提供了“值-值”的对应。是一种更加完善的hash结构。如下所示：
+```
+const m = new Map();
+const o = {p: 'Hello World'};
+
+m.set(o, 'content')
+m.get(o) // "content"
+
+m.has(o) // true
+m.delete(o) // true
+m.has(o) // false
+```
+* Map数据结构的构造函数可以接受数组，任何具有Iterator接口，并且每个成员都是一个双元素的数组的结构，都可以当作Map构造函数的参数，也就是说Set和Map都可以用来生成新的Map，如下所示：
+```
+const set = new Set([
+  ['foo', 1],
+  ['bar', 2]
+]);
+const m1 = new Map(set);
+m1.get('foo') // 1
+
+const m2 = new Map([['baz', 3]]);
+const m3 = new Map(m2);
+m3.get('baz') // 3
+```
+* 对于该构造函数的参数说明，如果对同一个键多次赋值，后面的值将覆盖前面的值，如果读取一个未知的键，则返回undefined。**只有对同一个对象的引用，Map结构才将其是为同一个键**，这一点在使用的时候要非常的小心，如下所示
+```
+const map = new Map();
+
+map.set(['a'], 555)
+map.get(['a']) //undefined
+```
+* 在上面的代码中，表面上是针对同一个键，但是实际上这两个不同的数组实例，内存地址是不一样的，因此get方法无法读取该键，返回undefined
+* 实例的属性和操作方法，在Map结构的实例有以下属性和操作方法，如下所示：
+    1. size属性，该属性返回Map结构的成员总数
+    ```
+    const map = new Map();
+    map.set('foo', true);
+    map.set('bar', false);
+
+    map.size // 2
+    ```
+    2. Map.prototype.set(key, value): 该方法设置key对应的value，然后返回整个Map结构，如果key已经有值，则键值会被更新，否则就新生成该键，如下所示
+    ```
+    let map = new Map()
+    .set(1, 'a')
+    .set(2, 'b')
+    .set(3, 'c');
+    ```
+    3. Map.prototype.get(key),get方法读取key对应的键值，如果找不到key就返回undefined
+    4. Map.prototypr.has(key),has方法返回一个布尔值，表示某个键是否在当前的Map对象之中
+    5. Map.prototype.delete(key), delete方法删除某个键值，返回true表示删除成功，如果失败，则返回false
+    6. Map.prototype.clear(), clear方法清除所有成员，没有返回值
+* 遍历方法，在Map结构原生提供了三个遍历器生成函数和一个遍历方法
+    * Map.prototype.keys(): 返回键名的遍历器
+    * Map.prototypr.values(): 返回键值的遍历器
+    * Map.prototype.entries(): 返回所有成员的遍历器
+    * Map.prototype.foreach(): 遍历Map的所有成员
+* 需要特别注意的是，Map的遍历顺序就是插入排序
+* 将Map结构转为数组结构，比较快速的方法是使用扩展运算符(...)，如下所示
+```
+const map = new Map([
+  [1, 'one'],
+  [2, 'two'],
+  [3, 'three'],
+]);
+
+[...map.keys()]
+// [1, 2, 3]
+
+[...map.values()]
+// ['one', 'two', 'three']
+
+[...map.entries()]
+// [[1,'one'], [2, 'two'], [3, 'three']]
+
+[...map]
+// [[1,'one'], [2, 'two'], [3, 'three']]
+```
+* 与其他数据结构的互相转化
+    * Map转为数组，将Map转化为数组的最方便的方法，就是使用扩展运算符(...)，如下所示：
+    ```
+    const myMap = new Map()
+    .set(true, 7)
+    .set({foo: 3}, ['abc']);
+    [...myMap]
+    // [ [ true, 7 ], [ { foo: 3 }, [ 'abc' ] ] ]
+    ```
+    * 数组转为Map，将数组转为Map构造函数，就可以转为Map
+    ```
+    new Map([
+    [true, 7],
+    [{foo: 3}, ['abc']]
+    ])
+    // Map {
+    //   true => 7,
+    //   Object {foo: 3} => ['abc']
+    // }
+    ```
+    * Map转为对象，如果所有Map的键都是字符串，它可以无损地转为对象
+    ```
+    function strMapToObj(strMap) {
+        let obj = Object.create(null);
+        for(let [k, v] of strMap) {
+            obj[k] = v;
+        }
+        return obj;
+    }
+    ```
+    * 如果有非字符串的键名，那么这个键名会被转化为字符串，再作为对象的键名
+    * 对象转为Map，对象转为Map可以通过Object.entries(),如下所示：
+    ```
+    let obj = { "a": 1, "b": 2 };
+    let map = new Map(Object.entries(obj))
+    ```
+    * Map转为JSON，这个时候需要分两种情况，
