@@ -2538,4 +2538,72 @@ const map = new Map([
     let obj = { "a": 1, "b": 2 };
     let map = new Map(Object.entries(obj))
     ```
-    * Map转为JSON，这个时候需要分两种情况，
+    * Map转为JSON，这个时候需要分两种情况，一种情况是，Map的键名都是字符串，这时可以选择转为对象JSON，另外一种情况是，Map的键名有非字符串，这时可以选择转为
+    数组JSON。
+    ```
+    //first one
+
+    function strMapToObj(strMap) {
+        let obj = Object.create(null);
+        for(let [k, v] of strMap) {
+            obj[k] = v;
+        }
+        return obj;
+    }
+
+    function strMapToJson(strMap) {
+        return JSON.stringify(strMapToObj(strMap))
+    }
+
+    //second method 
+    function mapToArrayJson (map) {
+        return JSON.stringify([...map]);
+    }
+    let myMap = new Map().set(true, 7).set({foo: 3},['abc']);
+    mapToArrayJson(myMap);
+    ```
+    * JSON转为Map，JSON转为Map，在正常情况下，所有键名都是字符串，如下所示
+    ```
+    function jsonToStrMap(jsonStr) {
+    return objToStrMap(JSON.parse(jsonStr));
+    }
+
+    jsonToStrMap('{"yes": true, "no": false}')
+    // Map {'yes' => true, 'no' => false}
+    ```
+
+## WeakMap
+* 含义：与Map结构类似，也是用于生成键值对的集合，如下所示：
+```
+// WeakMap 可以使用 set 方法添加成员
+const wm1 = new WeakMap();
+const key = {foo: 1};
+wm1.set(key, 2);
+wm1.get(key) // 2
+
+// WeakMap 也可以接受一个数组，
+// 作为构造函数的参数
+const k1 = [1, 2, 3];
+const k2 = [4, 5, 6];
+const wm2 = new WeakMap([[k1, 'foo'], [k2, 'bar']]);
+wm2.get(k2) // "bar"
+```
+* WeakMap与Map的之间的两点区别
+    * WeakMap只接受对象作为键名(null除外)，不接受其他类型的值作为键名
+    * WeakMap的键名所指向的对象，不计入垃圾回收机制
+* WeakMap的设计目的：有时想要在某个对象上存放一些数据，但是这会形成对于这个对象的引用。如下所示：
+```
+const e1 = document.getElementById('foo');
+const e2 = document.getElementById('bar');
+const arr = [
+  [e1, 'foo 元素'],
+  [e2, 'bar 元素'],
+];
+```
+* 在上面的这个实际例子中，一旦需要这两个对象，就必须手动去删除这个引用，否则垃圾回收机制就不会释放e1和e2所占用的内存。
+* 因而WeakMap就是解决这个问题而产生的，它的键名所引用的对象都是弱引用，即垃圾回收机制不将该引用考虑在内。
+* 该结构的使用场景：如果要往对象上添加数据，又不想去干扰垃圾回收机制，就可以使用WeakMap这个数据结构
+* WeakMap的语法，该语法与Map在API上的区别主要是两个，一个是没有遍历操作(即没有keys(), values(), entries()方法），也没有size属。因为没有办法
+列出所有键名，某个键名是否存在完全不可预测，跟垃圾回收机制是否运行有关
+
+    
