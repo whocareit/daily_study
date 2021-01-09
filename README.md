@@ -2606,4 +2606,117 @@ const arr = [
 * WeakMap的语法，该语法与Map在API上的区别主要是两个，一个是没有遍历操作(即没有keys(), values(), entries()方法），也没有size属。因为没有办法
 列出所有键名，某个键名是否存在完全不可预测，跟垃圾回收机制是否运行有关
 
-    
+## Proxy
+* Proxy概述：用于修改某些操作的默认行为，等同于在语言层面上做出修改，所以属于一种“元编程”，即对编程语言的处理。
+* 对于Proxy的理解，在目标对象之前架设一层“拦截”，外界对该对象的访问，都必须先通过这层拦截，因此可以提供一种机制，可以对外界的访问进行过滤和改写。这种类似的模式在当前的项目开发中，也
+使用在服务器的代理，以及在请求处理之前，这种方式在处理的过程中，就是先进行了一层过滤。如下面的案例所示：
+```
+var obj = new Proxy({}, {
+  get: function (target, propKey, receiver) {
+    console.log(`getting ${propKey}!`);
+    return Reflect.get(target, propKey, receiver);
+  },
+  set: function (target, propKey, value, receiver) {
+    console.log(`setting ${propKey}!`);
+    return Reflect.set(target, propKey, value, receiver);
+  }
+});
+
+obj.count = 1; 
+//setting count
+++obj.count 
+// getting count
+// setting count
+// setting count
+// 2
+```
+* 在上面的这段代码中，主要是对空对象架设了一层拦截，重新定义了get和set这两种行为，因而通过上面的运行结果就可知道这个拦截器在这里所起到的作用是是什么
+* 对于es6中原生所提供的Proxy构造函数的说明，其用来生成Proxy实例，如下所示：
+```
+const proxy = new Proxy(target, handler);
+```
+* 对于上面Proxy对象的说明，Proxy对象所有的用法，都是上面这种形式，但是不同点在于handler参数的写法。其中，new Proxy()表示生成一个Proxy实例，target
+参数表示所要拦截的目标对象，handler参数也是一个对象，用来定制拦截行为。如下所示：
+```
+const  proxy = new Proxy({} , {
+    get: function(target, propKeys) {
+        return 35;
+    }
+})
+
+console.log(proxy.time)
+console.log(proxy.name)
+console.log(proxy.title)
+```
+* 在上面的这段代码中，Proxy接受两个参数。第一个参数是所要代理的目标对象，即如果没有Proxy的介入，操作原来要访问的就是这个对象；第二个参数就是一个配置对象，对于每一个
+被代理的操作，需要提供一个对应的处理函数，该函数将拦截对应的操作。在上面的这段代码中get方法分别是对目标对象和所要访问的属性进行处理，所以无论是什么属性，最后得到的值一定
+就是35。需要注意的是**要使得Proxy起作用，必须针对Proxy实例进行操作，而不是针对目标对象进行操作，如果没有对handler设置任何拦截，那就等于直接通向了原对象**
+* 对于Proxy的使用技巧，将Proxy对象，设置到object.proxy属性，从而可以在object对象上调用。
+```
+const object = { proxy: new Proxy(target, handler)}
+```
+* Proxy实例也可以作为其他对象的原型对象。如下所示
+```
+var proxy = new Proxy({}, {
+  get: function(target, propKey) {
+    return 35;
+  }
+});
+
+let obj = Object.create(proxy);
+obj.time // 35
+```
+* 对于同一个拦截器，可以设置多种操作，如下所示：
+```
+const handler = {
+    get: function (target, name) {
+        if(name === 'prototype') {
+            return Object.prototype
+        }
+        return 'Hello, ' + name;
+    },
+
+    apply: function (target, thisBing, args) {
+        return args[0];
+    },
+
+    construct: function (target, args) {
+        return { value: args[1] };
+    }
+}
+
+const fproxy = new Proxy(function (x, y) {
+    return x + y;
+}, handler);
+
+console.log(fproxy(1, 2));
+console.log(new fproxy(1, 2));
+console.log(fproxy.prototype === Object.prototype);
+console.log(fproxy.foo === "Hello, foo");
+```
+
+### Proxy实例的方法
+1. get()，该方法用于拦截某个属性的读取操作，可以接受三个参数，依次为目标对象，属性名和proxy实例本身，其中最后一个参数可选，形式如下：
+```
+get(target, propKey, receiver): 拦截对象属性的读取，比如proxy.foo和proxy['foo']
+```
+* get方法的使用及其使用案例，如下所示
+```
+const person = {
+    name: '张三'
+}
+
+const proxy = new Proxy(person, {
+    get: function(target, propKey) {
+        if (propKey in target) {
+            return target[propKey];
+        } else {
+            throw new Error(`don't have this props `) 
+        }
+    }
+})
+
+console.log(proxy.name);
+console.log(proxy.age);
+```
+* 
