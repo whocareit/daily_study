@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-11-26 15:36:17
- * @LastEditTime: 2021-01-05 16:55:32
+ * @LastEditTime: 2021-01-19 15:43:45
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /work/daily_study/project.md
@@ -381,3 +381,80 @@ translateZ(0)或者translate3d(0,0,0)去使浏览器创建图层。这种⽅式�
     * 第二个参数是组件名称
     * 第三个是提示文案
 * 关于以上两个warning的解决方式，第一个是需要传入valuePropName属性与name属性值即可解决，第二个解决方式则是需要传入transformFile属性即可解决
+
+###  ts中对于dva使用
+#### model建立
+```
+import { Reducer, AnyAction } from 'redux'
+import { useDispatch, Effect } from 'dva'
+import { GetTermResItem } from '@/api/course_manage/term'
+
+export interface TermDetailReduxType {
+  termRes: GetTermResItem
+}
+
+export type TermDetailAction = AnyAction & Partial<TermDetailReduxType>
+
+export interface TermDetailType {
+  namespace: string
+  state: TermDetailReduxType
+  effects: {}
+  reducers: {
+    setReduxValue: Reducer<TermDetailReduxType, TermDetailAction>
+  }
+}
+
+const Model: TermDetailType = {
+  namespace: 'termdetail',
+  state: {
+    termRes: {} as GetTermResItem,
+  },
+  effects: {},
+  reducers: {
+    setReduxValue(state, action) {
+      const { type, ...others } = action
+      return { ...state, ...others }
+    },
+  },
+}
+
+export function useTermDetail() {
+  const dispatch = useDispatch()
+  return {
+    setTermDetailRedux: (params: Partial<TermDetailReduxType>) => {
+      return dispatch({ type: 'termdetail/setReduxValue', ...params })
+    },
+  }
+}
+
+export default Model
+
+```
+#### 调用set
+```
+const { setTermDetailRedux } = useTermDetail()
+setTermDetailRedux({ termRes: record })
+```
+#### connect函数
+```
+//定义mapToProps
+const mapToProps = ({ termdetail }: ConnectedReduxType) => {
+  return {
+    termRes: termdetail.termRes,
+  }
+}
+
+//type FProps = ConnectedDefaultProps & ReturnType<typeof mapToProps> & TermDetailType
+
+function TermDetail(props: FProps) => {
+
+    const { termRes } = props
+    return (
+        <div>
+        ....
+        </div>
+    )
+}
+
+export default connect(mapToProps)(TermDetail)
+```
