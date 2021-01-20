@@ -2719,4 +2719,41 @@ const proxy = new Proxy(person, {
 console.log(proxy.name);
 console.log(proxy.age);
 ```
-* 
+### Promise
+#### Promise相关
+* 含义：是异步编程的一种解决方案，用于对回调函数和事件的处理
+* 两大特点：
+  * 对象的状态不受外界影响。三种状态： pending, fulfilled, rejected
+  * 一旦状态改变，就不会改变。其状态改变的可能只能是两种：从pending变为fulfilled，另外一种是从pending变为rejected。如果状态发生改变就
+  不会改变。
+* 缺点：
+  * 无法取消Promise，一旦新建就会立即执行，无法从中途取消。
+  * 如果不设置回调函数，Promise内部抛出的错误，不会反应到外部
+  * 当处于pending状态时，无法得知目前进展到哪一个阶段
+* 基本用法，Promise构造函数接受一个函数作为参数，该函数的两个参数分别是resolve和reject函数，如下面的例子所示：
+```
+const promise = new Promise(function(resolve, reject) {
+  // ... some code
+
+  if (/* 异步操作成功 */){
+    resolve(value);
+  } else {
+    reject(error);
+  }
+```
+* resolve函数与reject函数的作用：
+  * resolve: 将Promise对象的状态从“未完成”变为“成功”（即从 pending 变为 resolved），在异步操作成功时调用，并将异步操作的结果，作为参数传递出去
+  * reject: 将Promise对象的状态从“未完成”变为“失败”（即从 pending 变为 rejected），在异步操作失败时调用，并将异步操作报出的错误，作为参数传递出去。
+#### then方法相关
+* then方法：当Promise实例生成之后，可以接收两个回调函数，第一个回调函数是Promise对象的状态变为resolved时调用，第二个回调函数是Promise对象的状态变为
+rejected时调用。这两个函数都是可选的，不一定要提供。它们都接受Promise对象传出的值作为参数。如下所示：
+```
+promise.then(function(value) {
+  // success
+}, function(error) {
+  // failure
+});
+```
+* then方法返回的是一个新的Promise实例，因此对于then方法可以采用链式写法，即then之后再调用另外一个then
+#### catch方法相关
+* Promise.prototype.catch()方法是.then(null, rejection)或.then(undefined, rejection)的别名，用于指定发生错误时的回调函数
