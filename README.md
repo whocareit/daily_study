@@ -3255,3 +3255,28 @@ for(let v of obj) {
 * Set和Map结构，也原生具有Iterator这个接口，可以直接使用for...of循环
 * 类数组
 * 对象中部署Symbol.iterator结构等
+
+### Generator函数的语法
+* 形式上，Generator函数是一个普通函数，但是有两个特征，一是function关键字与给函数名之间有一个星号；而是，函数体内部使用yield表达式，定义不同的内部状态
+```
+function* helloWorldGenerator() {
+  yield 'hello';
+  yield 'world';
+  return 'ending';
+}
+
+var hw = helloWorldGenerator();
+```
+#### yield表达式
+* 由于Genarator函数返回的遍历器对象，只有调用next方法才会遍历下一个内部状态，所以其实提供了一种可以暂停执行的函数。yield表达式就是暂停标志。**需要注意的是，yield表达式后面的表达式，只有当调用next方法、内部指针指向该语句时才会执行，**遍历对象的next方法的运行逻辑如下：
+    * 遇到yield表达式，就暂停执行后面的操作，并将紧跟yield后面的那个表达式的值作为返回的对象的value属性值
+    * 下一次调用next方法时，再继续往下执行，直到遇到下一个yield表达式
+    * 如果没有遇到新的yield表达式，就一直运行到函数结束，直到return语句为止，并将return语句后面的表达式的值，作为返回的对象的value属性值
+    * 如果该函数没有return语句，则返回的对象的value属性值为undefined
+* 如下面的案例所示，yield表达式123+456，不会立即求值，只会在next方法指针移到这一句时，才会求值：
+```
+function* gen() {
+  yield  123 + 456;
+}
+```
+* yield表达式与return语句既有相似之处，也有区别，相似之处在于，都能返回紧跟在语句后面的那个表达式的值。区别在于每次遇到yield，函数暂停执行，下一次再从该位置继续向后执行，而return语句不具备位置记忆功能
