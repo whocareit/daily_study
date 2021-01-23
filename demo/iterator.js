@@ -142,14 +142,119 @@
 // console.log(b.next(15)) // { value:8, done:false }
 // console.log(b.next(13)) // { value:42, done:true }
 
-function* dataConsumer() {
-    console.log('Started');
-    console.log(`1, ${yield}`);
-    console.log(`2, ${yield}`);
-    return `result`
-}
+// function* dataConsumer() {
+//     console.log('Started');
+//     console.log(`1, ${yield}`);
+//     console.log(`2, ${yield}`);
+//     return `result`
+// }
 
-let genObj = dataConsumer();
-console.log(genObj.next());
-console.log(genObj.next('a'));
-console.log(genObj.next('b'));
+// let genObj = dataConsumer();
+// console.log(genObj.next());
+// console.log(genObj.next('a'));
+// console.log(genObj.next('b'));
+
+// function* fib() {
+//     let [prev, curr] = [0, 1];
+//     for(;;) {
+//         yield curr;
+//         [prev, curr] = [curr, prev + curr];
+//     }
+// }
+
+// for (let n of fib()) {
+//     if (n > 1000) break;
+//     console.log(n);
+// }
+
+// function* objectEntries(obj) {
+//     let propKeys = Reflect.ownKeys(obj);
+
+//     for (let propKey of propKeys) {
+//         yield [propKey, obj[propKey]];
+//     }
+// }
+
+
+// let jane = { first: 'Jane', last: 'Doe' };
+    
+// for (let [key, value] of objectEntries(jane)) {
+//     console.log(`${key}: ${value}`);
+// }
+
+// function* numbers () {
+//     yield 1
+//     yield 2
+//     return 3
+//     yield 4
+// }
+
+// console.log([...numbers()])
+
+
+// const g = function* (x, y) {
+//     let result = yield x + y;
+//     return result;
+// }
+
+// const gen = g(1, 2);
+// console.log(gen.next());
+// console.log(gen.next(1));
+
+
+// function* foo() {
+//     yield 'a';
+//     yield 'b';
+// }
+
+// function* bar() {
+//     yield 'x';
+//     for(let i of foo()) {
+//         console.log(i);
+//     }
+//     yield 'y';
+// }
+// for(let v of bar()) {
+//     console.log(v);
+// }
+
+// function* inner() {
+//     yield 'hello!';
+// }
+
+// function* outer1() {
+//     yield 'open';
+//     yield inner();
+//     yield 'close';
+// }
+
+// var gen = outer1();
+// console.log(gen.next().value)
+// console.log(gen.next().value)
+// console.log(gen.next().value)
+
+// function* outer2() {
+//     yield 'open';
+//     yield *inner();
+//     yield 'close';
+// }
+
+// var gen1 = outer2();
+// console.log(gen1.next().value)
+// console.log(gen1.next().value)
+// console.log(gen1.next().value)
+
+// function* concat(iter1, iter2) {
+//     yield* iter1;
+//     yield* iter2;
+// }
+
+//等同于
+// function * concat(iter1, iter2) {
+//     for (const value of iter1) {
+//         yield value
+//     }
+//     for (const value of iter2) {
+//         yield value
+//     }
+// }
