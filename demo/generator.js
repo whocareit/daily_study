@@ -246,20 +246,20 @@ const { readFile } = require("fs");
 //     //...
 // }
 
-var fetch = require('node=fetch')
+// var fetch = require('node=fetch')
 
-function* gen() {
-    var url = 'https://api.github.com/users/github';
-    var result = yield fetch(url);
-    console.log(result.bio);
-}
+// function* gen() {
+//     var url = 'https://api.github.com/users/github';
+//     var result = yield fetch(url);
+//     console.log(result.bio);
+// }
 
-//执行gen方法
-var g = gen();
-var result = g.next();
+// //执行gen方法
+// var g = gen();
+// var result = g.next();
 
-result.value.then(function(data){
-    return data.json();
-}).then(function(data){
-    g.next(data);
-})
+// result.value.then(function(data){
+//     return data.json();
+// }).then(function(data){
+//     g.next(data);
+// })
