@@ -3280,3 +3280,384 @@ function* gen() {
 }
 ```
 * yield表达式与return语句既有相似之处，也有区别，相似之处在于，都能返回紧跟在语句后面的那个表达式的值。区别在于每次遇到yield，函数暂停执行，下一次再从该位置继续向后执行，而return语句不具备位置记忆功能
+
+* Generator函数可以不用yield表达式，这时就变成了一个单纯的暂缓执行函数
+```
+function* f() {
+    console.log()
+}
+var generator = f();
+
+setTimeout(function() {
+    generator.next()
+}, 2000)
+```
+* 在上面的代码中，函数f如果是普通函数，在为变量generator赋值时就会执行，但是函数f是一个Generator函数，就变成只有调用next方法时，函数f才会执行。另外需要注意，yield表达式只能用在generator函数里面，用在其他地方会报错
+
+#### 与Iterator接口之间的关系
+* 任意一个对象的Symbol.iterator方法，等于该对象的遍历器生成函数，调用该函数会返回该对象的一个遍历器对象。由于Generator函数就是该遍历器生成函数，因此可以把Generator函数
+赋值给对象的Symbol.iterator属性，从而使得该对象具有Iterator接口
+```
+var myIterable = {};
+myIterable[Symbol.iterator] = function* () {
+    yield 1;
+    yield 2;
+    yield 3;
+}
+console.log([...myIterable])
+```
+* 在上面的代码中，generator函数赋值给Symbol.iterator属性，从而使得myIterator对象具有itrator接口，可以被...运算符遍历了
+* Generator函数执行后，返回一个遍历器对象，该对象本身也具有Symbol.iterator属性，执行后返回自身，如下所示：
+```
+function* gen() {
+
+}
+
+var g = gen();
+
+g[Symbol.iterator]() === g;
+```
+* 在上面的代码中, gen是一个Generator函数，调用它会生成一个遍历器对象g。它的Symbol.iterator属性，也是一个遍历器对象生成函数，执行后返回它自己
+
+#### next方法的参数
+* yield表达式本身没有返回值，或者说总是返回undefined。next方法可以带一个参数，该参数就会被当作上一个yield表达式的返回值。如下所示：
+```
+function* f() {
+  for(var i = 0; true; i++) {
+    var reset = yield i;
+    if(reset) { i = -1; }
+  }
+}
+
+var g = f();
+
+g.next() // { value: 0, done: false }
+g.next() // { value: 1, done: false }
+g.next(true) // { value: 0, done: false }
+```
+* 这个功能有很重要的语法意义，generator函数从暂停状态到恢复到运行，他的上下文的context是不变的。通过next方法的参数，就有办法在generator函数开始运行之后，在继续向函数体内
+注入值，也就是说。可以在generator函数运行的不同阶段，从外部向内部注入不同的值，从而调整函数行为。如下所示：
+```
+function* foo(x) {
+  var y = 2 * (yield (x + 1));
+  var z = yield (y / 3);
+  return (x + y + z);
+}
+
+var a = foo(5);
+a.next() // Object{value:6, done:false}
+a.next() // Object{value:NaN, done:false}
+a.next() // Object{value:NaN, done:true}
+
+var b = foo(5);
+b.next() // { value:6, done:false }
+b.next(12) // { value:8, done:false }
+b.next(13) // { value:42, done:true }
+```
+
+* 通过next方法的参数，向generator函数内部输入值的例子，如下所示：
+```
+function* dataConsumer() {
+    console.log(`1.${yield}`);
+    console.log(`2.${yield}`);
+    return 'result';
+}
+
+let genObj = dataConsumer();
+genObj.next();
+genObj.next('a');
+genObj.next('b');
+```
+* 在上面的这个例子中，每次都通过next方法向generator函数输入值，然后打印出来，如果想要第一次调用next方法时，就能够输入值，可以在generator函数外面包一层，如下所示：
+```
+function wrapper(generatorFunction) {
+    return function (...args) {
+        let generatorObj = generatorFunction(...args);
+        generatorObj.next();
+        return generatorObj;
+    }
+}
+
+const wrapped = wrapper(function* () {
+    console.log(`first input: ${yield}`);
+    return 'DONE';
+})
+
+wrapped().next('hello!');
+```
+#### for...of循环
+* for...of循环可以自动遍历Generator函数运行时生成的Iterator对象，且此时不再需要调用next方法，如之前在上一节说的内容所示，在这里就不过多的叙述
+* 使用Generator函数与for...of循环，实现斐波拉契数列的例子：
+```
+function* fib() {
+    let [prev, curr] = [0, 1];
+    for(;;) {
+        yield curr;
+        [prev, curr] = [curr, prev + curr];
+    }
+}
+for( let n of fib()) {
+    if( n > 1000) break
+    console.log(n);
+}
+```
+* 在上面的这个例子中，使用了for...of语句，在此时不需要使用next方法。利用for...of循环，可以写出遍历对象的方法，原生的js对象没有遍历接口，无法使用for...of循环，通过
+Generator函数为它加上这个接口，就可以使用。如下所示：
+```
+function* objectEntries(obj) {
+    let propKeys = Reflect.ownKeys(obj);
+
+    for(let propKey of propKeys) {
+        yield [propKey, obj[propKey]];
+    }
+}
+
+let jane = { first: 'Jane', last: 'Doe'}
+for (let [key, value] of objectEntries(jane)) {
+    console.log(`${key}: ${value}`);
+}
+```
+* 补充说明Reflect.ownKeys()方法，该方法返回一个包含对象所有属性关键字的数组，如下所示：
+```
+const object1 = {
+    property1: 42,
+    property2: 13
+}
+
+const array1 = []
+
+console.log(Reflect.ownKeys(object1));
+console.log(Reflect.ownKeys(array1));
+```
+
+#### Generator.prototype.throw()
+* Generator函数但会的遍历器对象，都有个throw方法，可以在函数体外抛出错误，然后在Generator函数体内捕获
+```
+var g = function* () {
+    try {
+        yield;
+    } catch(e) {
+        console.log('内部捕获', e);
+    }
+}
+
+var i = g();
+i.next();
+
+try {
+    i.throw('a');
+    i.throw('b')
+} catch(e) {
+    console.log('外部捕获', e);
+}
+// 内部捕获 a
+// 外部捕获 b
+```
+* 在上面的代码中，遍历器对象i连续抛出两个错误。第一个错误被Generator函数体内的catch语句捕获。第二次跑出错误，由于Generator函数内部的catch语句已经执行过了，不会再
+捕获到这个错误了，所以这个错误就被抛出了Generator函数体，被函数体外的catch语句捕获
+```
+var g = function* () {
+    try {
+        yield;
+    } catch(e) {
+        if( e != 'a' ) throw e; 
+        console.log('内部捕获', e);
+    }
+}
+
+var i = g();
+i.next();
+
+try {
+    throw new Error('a')
+    throw new Error('b')
+} catch (e) {
+    console.log('外部捕获', e);
+}
+```
+* 这个案例中之所以捕获了a，是因为函数体外的catch语句块，捕获了跑出的a的错误以后，就不会在继续try代码块里面剩余的语句
+```
+var gen = function* gen(){
+    yield console.log('hello');
+    yield console.log('world');
+}
+
+var g = gen();
+g.next()
+g.throw()
+```
+* 在上面的这段代码中，g.throw方法被捕获之后，自动执行一次next方法，所以会打印b,另外可以清楚只要Generator函数内部部署了try...catch代码块，那么遍历器的throw方法抛出的错误，不影响
+下一次遍历，另外throw命令与g.throw方法是无关的，两者互不影响
+
+#### Generator.prototype.return()
+* generator函数返回的遍历器对象，还有一个return方法，可以返回给定的值，并且终结遍历Generator函数,如下所示：
+```
+function* gen() {
+    yield 1;
+    yield 2;
+    yield 3;
+}
+var g = gen();
+console.log(g.next());
+console.log(g.return('foo'));
+console.log(g.next())
+//{ value: 1, done: false }
+//{ value: 'foo', done: true }
+//{ value: undefined, done: true }
+```
+* 在上面的代码中，遍历器对象g调用renturn方法后，返回的值value属性就是return()方法的参数foo。并且，Generator函数的遍历就终止，返回done属性为true,之后再调用时，不再提供参数。即最后的返回值中的value属性为undefined
+
+#### next() throw() return()的共同点
+* 这三个方法本质上是同一件事，可以放在一起理解，他们之间的作用都是让Generator函数恢复执行，并且使用不同的语句替换yield表达式。next()是将yield表达式替换成一个值。如下所示：
+```
+const g = function* (x, y) {
+    let result = yield x + y;
+    return result;
+}
+
+const gen = g(1, 2);
+console.log(gen.next());
+console.log(gen.next(1)); 
+//{value: 3, done: false}
+//{value: 1, done: ture}
+```
+* 在上面的代码中，第二个参数next(1)方法就相当于将yield表达式替换成一个值1.如果next方法没有参数，就相当于替换成undefined
+
+#### yield* 表达式
+* 如果在Generator函数内部，调用另一个Generator函数，需要在前者的函数体内部，自己手动完成遍历。如下所示：
+```
+function* foo() {
+    yield 'a';
+    yield 'b';
+}
+
+function* bar() {
+    yield 'x';
+    for(let i of foo()) {
+        console.log(i);
+    }
+    yield 'y';
+}
+
+for(let i of bar()) {
+    console.log(i)
+}
+```
+* 在es6中提供了yield*表达式，作为解决方法，用来在一个Generator函数里面执行另一个Generator函数，如下所示：
+```
+function* bar() {
+    yield 'x';
+    yield* foo();
+    yield 'y';
+}
+
+function* foo() {
+    yield 'x';
+    yield 'a';
+    yield 'b';
+    yield 'y';
+}
+
+for(let i of bar()) {
+    console.log(i)
+}
+```
+* 如果yield* 后面跟着一个数组，由于数组原生支持遍历器，因此就会遍历数组成员。如下所示：
+```
+function* gen() {
+    yield* ['a', 'b', 'c'];
+}
+console.log(gen().next());
+//{ value: 'a', done: false }
+```
+* 实际情况下，任何数据结构只要有Iterator接口，就可以被yield* 遍历
+```
+function* gen() {
+    yield* ['a', 'b', 'c'];
+}
+console.log(gen().next())
+//{ value: 'a', done: 'false' }
+```
+
+* 使用yield*命令可以很方便地取出嵌套数组的所有成员
+```
+function* iterTree(tree) {
+    if(Array.isArray(tree)) {
+        for(let i = 0; i < tree.length; i++) {
+            yield* iterTree(tree[i])
+        }
+    }else{
+        yield* tree;
+    }
+}
+
+const tree = [ 'a', ['b', 'c', ['g', 'h']], ['d', 'e'] ];
+
+for(let i of iterTree(tree)) {
+    console.log(i)
+}
+```
+
+#### 作为对象属性得Generator函数
+* 如果一个对象的属性是Generator函数，可以简写成下面的形式，如下所示：
+```
+let obj = {
+    * myGeneratorMethod() {
+
+    }
+}
+```
+* 它的完整形式如下，与上面的写法是等价的
+```
+let obj = {
+    myGeneratorMethod: function() {
+
+    }
+}
+```
+
+* Generator函数的this
+* Generator函数总是返回一个遍历器，ES6规定的这个遍历器Generator函数的实例，也继承了Generator函数的prototype对象上的方法,如下所示：
+```
+function* g() {}
+
+g.prototype.hello = function() {
+    return 'hi'
+}
+
+let obj = g();
+
+console.log(obj instanceof g) //true
+console.log(obj.hello()) // 'hi'
+```
+* 上面代码表明，Generator函数g返回的遍历器obj，是g的实例。而且继承了g.prototype。但是，如果把g当作普通的构造函数，并不会生效，因为g返回的总是遍历
+器对象，而不是this对象
+```
+function* g() {
+    this.a = 11;
+}
+
+let obj = g();
+obj.next();
+console.log(obj.a);
+```
+* 在上面的代码中，Generator函数g在this对象上添加了一个属性a，但是obj对象拿不到这个属性
+* Generator函数g在this对象上添加一个属性a，但是obj对象拿不到这个属性，下面一个变通方法，首先生成一个空对象，使用call方法绑定Generator函数内部的this.这样，构造函数调用以后，这个空对象就是
+Generator函数的实例对象了。如下所示：
+```
+function* F() {
+    this.a = 1;
+    yield this.b = 2;
+    yield this.c = 3;
+}
+var obj = { };
+var f = F.call(obj);   
+
+
+console.log(f.next())
+console.log(f.next())
+console.log(f.next())
+
+console.log(obj.a, obj.b,obj.c);
+```
+
