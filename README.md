@@ -3661,3 +3661,119 @@ console.log(f.next())
 console.log(obj.a, obj.b,obj.c);
 ```
 
+### Generatora函数的异步应用
+* 传统的异步编程方法大概有以下的四种：
+    * 回调函数
+    * 事件监听
+    * 发布/订阅
+    * Promise对象
+* 异步：简单理解就是将一个任务分成多段，先执行第一段，后再执行其他任务的方式，等做好准备后，在回过头来执行第二段
+* 回调函数，就是把任务的第二段单独写在一个函数里面，等到重新执行这个任务时，就直接调用这个函数
+* Promise：主要是为了解决依次读取两个以上的文件，出现多重嵌套的问题，如下所示：
+```
+fs.readFile(fileA, 'utf-8', function(err, data){
+    fs.readFile(fileA, 'utf-8', function(err, data){
+       // ...
+    })
+})
+```
+* 代码是横向发展而不是纵向发展，很快就会乱成一团，无法进行管理，因为多个一步操作形成强耦合，只要有一个操作需要修改，他的上层回调和下层回调函数，可能都要跟着修改，这种情况就被成为称为回调
+函数地狱。Promise对象的出现就是为了解决的这个问题而提出的，他不是新的语法功能而是一种新的写法，允许将回调函数的嵌套，改成链式调用，采用Promise，连续读取多个文件，写法如下：
+```
+var readFile = require('fs-readfile-promise');
+
+readFile(fileA)
+.then(function (data) {
+    console.log(data.toString())
+})
+.then(function () {
+    return readFile(fileB)
+})
+.then(function (data) {
+    console.log(data.toString())
+})
+.catch(function (err) {
+    console.log(err)
+})
+```
+
+#### Generator函数
+* 协程，多个线程互相协作，完成异步任务
+* 协程有点像函数，又有点像线程，运行的流程大致如下：
+    * 第一步，协程A开始执行
+    * 第二步，协程A执行到一半，进入暂停，执行权转移到协程B
+    * 第三步，(一段时间后)协程B交还执行权
+    * 第四部，协程A恢复执行
+* 上面流程的协程A，就是异步任务，因为它分成了两段(多段)执行。如下面的代码所示：
+```
+function* asyncJob() {
+    //....
+    var f = yield readFile(fileA);
+    //...
+}
+```
+* 上面代码的函数asyncJob是一个协程，当执行到yiled命令处时，执行权将交给其他协程，等到执行权返回，再从暂停的地方继续往后执行
+
+#### Generator函数的数据交换和错误处理
+* generator函数可以暂停执行和恢复执行，这是它能封装异步任务的根本原因。除此之外，还具有两个特性，使它可以作为异步编程的完整解决方案：函数体内外的数据交换和错误处理机制。
+如下所示：
+```
+function* gen(x){
+  try {
+    var y = yield x + 2;
+  } catch (e){
+    console.log(e);
+  }
+  return y;
+}
+
+var g = gen(1);
+g.next();
+g.throw('出错了');
+// 出错了
+```
+#### 异步任务的封装：
+* 使用generator函数，执行一个真实的异步任务，如下所示：
+```
+
+var fetch = require('node=fetch')
+
+function* gen() {
+    var url = 'https://api.github.com/users/github';
+    var result = yield fetch(url);
+    console.log(result.bio);
+}
+
+//执行gen方法
+var g = gen();
+var result = g.next();
+
+result.value.then(function(data){
+    return data.json();
+}).then(function(data){
+    g.next(data);
+})
+```
+* 对于上面的案例来说，首先是使用了generator函数封装了一个异步函数，而后就是采用异步的方式来调用这个方法
+
+#### thunk函数
+* Thunk函数是自动执行Generator函数的一种方法
+* 参数的求值策略，两种求值策略，通过以下的案例,来说明参数的求值策略
+```
+var x = 1;
+
+function  f(m) {
+    return m * 2;
+}
+
+f(x + 5)
+```
+* 求值策略
+    * 传值调用，即在进入函数体之前，就计算x+5，再将这个值传入函数f之中，c语言就是这种策略
+    * 传名调用，即直接将表达式x+5传入函数体中，只在用它时求职。Haskell语言就采用这种策略
+* Thunk函数的含义：编译器的"传名调用实现"，往往是将参数放到一个临时函数之中，再将这个临时函数传入函数体。这个临时函数就叫做Thunk函数
+
+* js中Thunk函数是传值调用，它的的Thunk函数含义有所不同，在js中Thunk函数替换的不是表达式，而是多参数函数，将其替换成一个只接受回调函数作为参数的单参数函数
+
+
+

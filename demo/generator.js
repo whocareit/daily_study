@@ -6,6 +6,8 @@
 // }
 // console.log([...myIterable])
 
+const { readFile } = require("fs");
+
 // function* gen() {
 
 // }
@@ -215,3 +217,49 @@
 // console.log(f.next())
 
 // console.log(obj.a, obj.b,obj.c);
+
+// fs.readFile(fileA, 'utf-8', function(err, data){
+//     fs.readFile(fileA, 'utf-8', function(err, data){
+//        // ...
+//     })
+// }) 
+
+// var readFile = require('fs-readfile-promise');
+
+// readFile(fileA)
+// .then(function (data) {
+//     console.log(data.toString())
+// })
+// .then(function () {
+//     return readFile(fileB)
+// })
+// .then(function (data) {
+//     console.log(data.toString())
+// })
+// .catch(function (err) {
+//     console.log(err)
+// })
+
+// function* asyncJob() {
+//     //....
+//     var f = yield readFile(fileA);
+//     //...
+// }
+
+var fetch = require('node=fetch')
+
+function* gen() {
+    var url = 'https://api.github.com/users/github';
+    var result = yield fetch(url);
+    console.log(result.bio);
+}
+
+//执行gen方法
+var g = gen();
+var result = g.next();
+
+result.value.then(function(data){
+    return data.json();
+}).then(function(data){
+    g.next(data);
+})
