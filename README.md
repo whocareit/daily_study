@@ -4267,3 +4267,151 @@ class MyClass {
 
 #### 私有方法和私有属性
 * 私有方法和私有属性，是只能在类的内部访问的方法和属性，外部不能访问。但es6不提供，只能通过变通方法模拟实现
+
+### Class的继承
+#### 简介
+* class可以通过extends关键字实现继承，如下所示：
+```
+class Parent {
+
+}
+
+class  Child extends Parent {
+    
+}
+```
+* 子类在继承父类时必须在constructor方法中调用super方法，否则新建实例时会报错。这是因为子类自己的this对象，必须先通过父类的构造函数完成塑造，
+得到与父类同样的实例属性和方法，如下所示：
+```
+class Point {
+    toString(){
+        return 'hello world'
+    }
+}
+
+class ColorPoint extends Point {
+    constructor(color) {
+        super(x, y);
+        this.color = color;
+    }
+
+    toString() {
+        return this.color + ' ' + super.toString();
+    }
+}
+
+let cp = new ColorPoint(1, 2, 3);
+
+console.log(cp.toString());
+```
+* 此外需要注意的地方就是，在子类的构造函数中，只有调用super之后，才可以使用this关键字，否则会报错。这是因为子类实例的构建中，基于父类实例，只有super方法
+才能调用父类实例。
+
+#### Object.getPrototypeOf()
+* 该方法可以用来从子类上获取父类
+```
+Object.getPrototypeof(ColorPoint) === Point
+```
+
+#### super关键字
+* 该关键字，既可以当作函数使用，也可以当作对象使用。在这两种情况下，它的用法完全不同。
+    * super作为函数调用时，代表父类的构造函数。es6要求，子类的构造函数必须执行一次super函数
+    ```
+    class A {}
+    class B extends A {
+        constructor() {
+            super();
+        }
+    }
+    ```
+    * super作为对象时，在普通方法中，指向父类的原型对象；在静态方法中指向父类。在这里需要注意的是，由于super指向父类的原型对象，所以定义在父类实例上的方法或属性，是无法
+    通过super调用的
+    ```
+    class A {
+        p() {
+            return 2;
+        }
+    }
+
+    class B extends A {
+        constructor() {
+            super();
+            console.log(super.p());
+        }
+    }
+
+    let b = new B();
+    ```
+    * es6规定，在子类普通方法中通过super调用父类的方法时，方法内部的this指向当前的子类实例，如下所示：
+    ```
+    class A {
+        constructor(){
+            this.x = 1;
+        }
+
+        print() {
+            return console.log(this.x);
+        }
+    }
+
+    class B extends A {
+        constructor() {
+            super();
+            this.x = 2;
+        }
+
+        m(){
+            super.print()
+        }
+    }
+
+    let b = new B()
+    b.m()
+    ```
+    * 如果super作为对象，用在静态方法之中，这时super将指向父类，而不是父类的原型对象，如下所示：
+    ```
+    class Parent {
+        static myMethod(msg) {
+            console.log('static', msg);
+        }
+
+        myMethod(msg) {
+            console.log('instance', msg);
+        }
+    }
+
+
+    class Child extends Parent {
+        static myMethod(msg) {
+            super.myMethod(msg)
+        }
+
+        myMethod(msg){
+            super.myMethod(msg)
+        }
+    }
+
+    Child.myMethod(1)
+
+    var child = new Child();
+    child.myMethod(2);
+    ```
+    * 需要注意的是，在使用super的时候，必须显示指定是作为函数、还是作为对象使用，否则会报错，如下所示：
+    ```
+    class A {
+
+    }
+
+    class A extends B {
+        constructor() {
+            super();
+            console.log(super)
+        }
+    }
+    ```
+
+#### 类的 prototype 属性和__proto__属性
+* ES5实现之中，每一个对象都有__proto__属性，指向对应的构造函数的prototype属性。Class 作为构造函数的语法糖，同时有prototype属性和__proto__属性，因此同时存在两条继承链。
+    * 子类的__proto__属性，表示构造函数的继承，总是指向父类。
+    * 子类prototype属性的__proto__属性，表示方法的继承，总是指向父类的prototype属性
+

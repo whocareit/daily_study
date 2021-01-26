@@ -87,10 +87,123 @@
 //     }
 // }
 
-const MyClass = class me {
-    getName() {
-        return 'jjfhdj'
-    }
-}
+// const MyClass = class me {
+//     getName() {
+//         return 'jjfhdj'
+//     }
+// }
 
-let child = new MyClass();
+// let child = new MyClass();
+
+// class Parent {
+
+// }
+
+// class  Child extends Parent {
+
+// }
+
+// class Point {
+//     toString(){
+//         return 'hello world'
+//     }
+// }
+
+// class ColorPoint extends Point {
+//     constructor(color) {
+//         super(x, y);
+//         this.color = color;
+//     }
+
+//     toString() {
+//         return this.color + ' ' + super.toString();
+//     }
+// }
+
+// let cp = new ColorPoint(1, 2, 3);
+
+// console.log(cp.toString());
+
+// class A {}
+// class B extends A {
+//     constructor() {
+//         super();
+//     }
+// }
+
+// class A {
+//     p() {
+//         return 2;
+//     }
+// }
+
+// class B extends A {
+//     constructor() {
+//         super();
+//         console.log(super.p());
+//     }
+// }
+
+// let b = new B();
+
+// class A {
+//     constructor(){
+//         this.x = 1;
+//     }
+
+//     print() {
+//         return console.log(this.x);
+//     }
+// }
+
+// class B extends A {
+//     constructor() {
+//         super();
+//         this.x = 2;
+//     }
+
+//     m(){
+//         super.print()
+//     }
+// }
+
+// let b = new B()
+// b.m()
+
+// class Parent {
+//     static myMethod(msg) {
+//         console.log('static', msg);
+//     }
+
+//     myMethod(msg) {
+//         console.log('instance', msg);
+//     }
+// }
+
+
+// class Child extends Parent {
+//     static myMethod(msg) {
+//         super.myMethod(msg)
+//     }
+
+//     myMethod(msg){
+//         super.myMethod(msg)
+//     }
+// }
+
+// Child.myMethod(1)
+
+// var child = new Child();
+// child.myMethod(2);
+
+
+// class A {
+
+// }
+
+// class A extends B {
+//     constructor() {
+//         super();
+//         console.log(super)
+//     }
+// }
