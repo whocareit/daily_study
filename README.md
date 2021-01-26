@@ -4057,3 +4057,213 @@ function spawan(genF) {
     })
 }
 ```
+
+### class
+#### es5与es6之间的转化方式
+* 使用es6和es5之间实现类的方式，如下所示：
+```
+//es5
+function Point(x, y) {
+    this.x = x;
+    this.y = y;
+}
+
+Point.prototype.toString = function() {
+    return '(' + this.x + ', ' + this.y + ')';
+}
+
+//es6
+class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    toString() {
+        return '(' + this.x + ', ' + this.y + ')';
+    }
+}
+```
+
+#### constructor方法
+* construcctor()方法是类的默认方法，通过new命令生成对对象实例时，自动调用该方法类，一个类必须有constructor方法。如果没有显示的定义，一个默认的constructor方法会被默认添加
+```
+class Ponit {
+
+}
+
+//等同于
+class Point {
+    constructor() {
+
+    }
+}
+```
+
+#### 类的实例
+* 生成类的实例的写法，与ES5完全一样，也是使用new命令。如果忘记加上new，像函数那样调用Class，将会报错
+```
+class Point {
+    constructor() {
+
+    }
+}
+
+var point = new Point(1, 2)
+```
+* 与es5一样，实例的属性除非显示定义在其本身，否则都是定义在原型上
+```
+class Point {
+    
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    toString() {
+        return '(' + this.x + ', ' + this.y + ')';
+    }
+
+}
+
+var point = new Point(2, 3);
+console.log(point.toString());
+console.log(point.hasOwnProperty('x')) // true
+console.log(point.hasOwnProperty('y'))// true
+console.log(point.hasOwnProperty('toString')) // false
+console.log(point.__proto__.hasOwnProperty('toString') )// true
+```
+* 与es5一样，类的所有实例共享一个原型对象，如下所示：
+```
+class Point {
+    
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    toString() {
+        return '(' + this.x + ', ' + this.y + ')';
+    }
+
+}
+
+var p1 = new Point(1, 2);
+var p2 = new Point(3, 2);
+
+```
+
+#### 取值函数(getter)和存值函数(setter)
+```
+class MyClass {
+    constructor() {
+
+    }
+
+    get prop() {
+        return this.x
+    }
+
+    set prop(value) {
+        console.log('setter ' + value)
+    }
+}
+
+let ins = new MyClass();
+ins.prop = 123;
+
+console.log(ins.prop);
+// setter 123
+// undefined
+```
+
+#### 属性表达式
+* 类的属性名，可以采用表达式的方式
+```
+let methodName = 'getArea';
+
+class Square {
+    constructor() {
+
+    }
+
+    [methodName]() {
+        
+    }
+}
+```
+
+* Class表达式，与函数一样，类也可以使用表达式的形式定义，如下所示：
+```
+const MyClass = class me {
+    getName() {
+        return 'jjfhdj'
+    }
+}
+
+let child = new MyClass();
+```
+
+* 在使用class的过程中需要注意一下几点：
+    * 严格模式：类和模块的内部，默认就是严格模式，所以不需要使用use strict指定运行模式。
+    * 不存在变量提升
+    * name属性：ES6类只是ES5的构造函数的一层包装，所以函数的许多特性都被class继承，包括name属性
+    * Generator方法，如果某个方法之前加上星号(*)，就表示该方法是一个Generator函数
+    * this指向，类的方法内部如果含有this，它默认指向类的实例
+
+#### 静态方法
+* 类相当于实例的原型，所有在类中定义的方法，都会被实例继承。如果在一个方法前，加上static关键字，就表示该方法不会被实例继承，而是直接通过类来调用，
+这就被称为“静态方法”，如下所示：
+```
+class Foo {
+  static classMethod() {
+    return 'hello';
+  }
+}
+
+Foo.classMethod() // 'hello'
+```
+* 静态方法可以与非静态方法重名,如下所示：
+```
+class Foo {
+  static bar() {
+    this.baz();
+  }
+  static baz() {
+    console.log('hello');
+  }
+  baz() {
+    console.log('world');
+  }
+}
+
+Foo.bar() // hello
+```
+* 父类的静态方法，可以被子类继承，如下所示：
+```
+class Foo {
+  static classMethod() {
+    return 'hello';
+  }
+}
+
+class Bar extends Foo {
+}
+
+Bar.classMethod() // 'hello'
+```
+
+#### 静态属性
+* 静态属性指的是Class本身的属性，即Class.propName，而不是定义在实例对象（this）上的属性，如下所示
+```
+class MyClass {
+  static myStaticProp = 42;
+
+  constructor() {
+    console.log(MyClass.myStaticProp); // 42
+  }
+}
+```
+
+#### 私有方法和私有属性
+* 私有方法和私有属性，是只能在类的内部访问的方法和属性，外部不能访问。但es6不提供，只能通过变通方法模拟实现
