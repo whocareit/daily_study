@@ -94,9 +94,124 @@
 //     e => console.log('reject', e)
 // )
 
-async function getTitle(url) {
-    let response = await fetch(url);
-    let html = await response.text();
-    return html.match(/<title>([\s\S]+)<\/title>/i)[1];
+// async function getTitle(url) {
+//     let response = await fetch(url);
+//     let html = await response.text();
+//     return html.match(/<title>([\s\S]+)<\/title>/i)[1];
+// }
+// getTitle('https://tc39.github.io/ecma262/').then(console.log);
+
+// async function f() {
+//     return await 123;
+// }
+// f().then(res => console.log(res))
+
+// class Sleep {
+//     constructor(timeout) {
+//         this.timeout = timeout;
+//     }
+
+//     then(resolve, reject) {
+//         const startTime = Date.now();
+//         setTimeout(
+//             () => resolve(Date.now() - startTime),
+//             this.timeout
+//         )
+//     }
+// }
+// (async () => {
+//     const sleepTime = await new Sleep(1000);
+//     console.log(sleepTime)
+// })()
+
+// function sleep(interval) {
+//     return new Promise(resolve => {
+//         setTimeout(resolve, interval)
+//     })
+// }
+
+// async function one2FiveInAsync() {
+//     for(let i = 1; i <= 5; i++) {
+//         console.log(i);
+//         await sleep(1000);
+//     }
+// }
+
+// one2FiveInAsync()
+
+// async function f() {
+//     await Promise.reject('erroring，，，，，，');
+// }
+
+// f()
+// .then(v => console.log(v))
+// .catch(e => console.log(e));
+
+// async function f() {
+//     await Promise.reject('error');
+//     await Promise.reject('hello world');
+// }
+// f().then(res => console.log(res))
+// .catch(e => console.log(e))
+// async function f() {
+//     try {
+//         await Promise.reject('error')
+//     } catch(e) {
+//         return await Promise.reject('hello world')
+//     }
+// }
+// f()
+// .then(v => console.log(v))
+// .catch(e => console.log(e))
+
+// async function f() {
+//     await new Promise(function (resolve, reject) {
+//         throw new Error('error');
+//     })
+// }
+// f()
+// .then(res => console.log(res))
+// .catch(e => console.log(e))
+
+// let foo = await getFoo()
+// let bar = await getBar()
+// //用下面的方式来处理
+// let [foo, bar] = await Promise.all([foo(), bar()]);
+// //或者
+// let fooPromise = getFoo();
+// let barPromise = getBar();
+
+async function f() {
+    //
 }
-getTitle('https://tc39.github.io/ecma262/').then(console.log);
+
+//等同于
+
+function fn(args) {
+    return spawan(function* (){
+
+    })
+}
+
+function spawan(genF) {
+    return new Promise(function(resolve, reject) {
+        const gen = genF();
+        function step(nextF) {
+            let next;
+            try {
+                next = nextF();
+            } catch(e) {
+                return reject(e);
+            }
+            if(next.done) {
+                return resolve(next.value);
+            }
+            Promise.resolve(next.value).then(function(v) {
+                step(function() { return gen.next(v); })
+            }, function(e) {
+                step(function() { return gen.throw(e); })
+            })
+        }
+        step(function(){ return gen.next(undefined); });
+    })
+}

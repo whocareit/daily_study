@@ -3910,3 +3910,150 @@ async function getTitle(url) {
 getTitle('https://tc39.github.io/ecma262/').then(console.log);
 ```
 * 在上面的代码中，函数getTitle内部有三个操作：抓取网页、取出文本、匹配页面标题。只有这三个操作全部完成，才会执行then方法里面的console.log
+
+#### await命令
+* await命令，正常情况下，await命令后面是一个Promise对象，返回该对象的结果。如果不是Promise对象，就直接返回对应的值。如下所示：
+```
+async function f() {
+    return await 123;
+}
+f().then(res => console.log(res))
+//123
+```
+* 另外一种情况是，await命令后面是一个thenable对象(即定义then方法的对象)，那么await会将其等同于Promise对象
+```
+class Sleep {
+    constructor(timeout) {
+        this.timeout = timeout;
+    }
+
+    then(resolve, reject) {
+        const startTime = Date.now();
+        setTimeout(
+            () => resolve(Date.now() - startTime),
+            this.timeout
+        )
+    }
+}
+(async () => {
+    const sleepTime = await new Sleep(1000);
+    console.log(sleepTime)
+})()
+```
+* 在上面的代码中，await命令后面是一个Sleep对象的实例。这个实例不是Promise对象，但是因为定义了then方法，await会将其视为Promise处理
+* 休眠效果实现
+```
+function sleep(interval) {
+    return new Promise(resolve => {
+        setTimeout(resolve, interval)
+    })
+}
+
+async function one2FiveInAsync() {
+    for(let i = 1; i <= 5; i++) {
+        console.log(i);
+        await sleep(1000);
+    }
+}
+
+one2FiveInAsync()
+```
+* await命令后面的Promise对象如果变为reject状态，则reject的参数会被catch方法回调函数接收到。如下所示：
+```
+async function f() {
+    await Promise.reject('erroring，，，，，，');
+}
+
+f()
+.then(v => console.log(v))
+.catch(e => console.log(e));
+```
+* 任何一个await语句后面的Promise对象变为reject状态，那么整个async函数都会中断执行。如下所示：
+```
+async function f() {
+    await Promise.reject('error');
+    await Promise.reject('hello world');
+}
+f()
+.then(res => console.log(res))
+.catch(e => console.log(e))
+// error
+```
+* 当希望即使一个前一个异步操作失败，也不要中断后面的异步操作。这时可以将第一个await放在try...catch结构里面，这样不管这个异步操作是否成功，第二个await都会执行。如下所示：
+```
+async function f() {
+    try {
+        await Promise.reject('error')
+    } catch(e) {
+        return await Promise.reject('hello world')
+    }
+}
+f()
+.then(v => console.log(v))
+.catch(e => console.log(e))
+//hello world
+```
+#### 错误处理
+* 如果await后面的异步操作出错，那么等同于async函数返回的Promise对象被reject，如下所示：
+```
+async function f() {
+    await new Promise(function (resolve, reject) {
+        throw new Error('error');
+    })
+}
+f()
+.then(res => console.log(res))
+.catch(e => console.log(e))
+```
+#### 使用注意点
+* await命令后面的Promise对象，运行结果可能是rejected，所以最好把await命令放在try...catch代码块中
+* 多个await命令后面的异步操作，如果不存在继发关系，最好让它们同时触发，如下所示：
+```
+let foo = await getFoo()
+let bar = await getBar()
+//用下面的方式来处理
+let [foo, bar] = await Promise.all([foo(), bar()]);
+//或者
+let fooPromise = getFoo();
+let barPromise = getBar();
+```
+* await命令只能在async函数当中，如果用在普通函数，就会报错
+
+#### async函数的实现原理
+* 就是将Generator函数和自动执行器，包装在一个函数中
+```
+async function f() {
+    //
+}
+
+//等同于
+
+function fn(args) {
+    return spawan(function* (){
+
+    })
+}
+
+function spawan(genF) {
+    return new Promise(function(resolve, reject) {
+        const gen = genF();
+        function step(nextF) {
+            let next;
+            try {
+                next = nextF();
+            } catch(e) {
+                return reject(e);
+            }
+            if(next.done) {
+                return resolve(next.value);
+            }
+            Promise.resolve(next.value).then(function(v) {
+                step(function() { return gen.next(v); })
+            }, function(e) {
+                step(function() { return gen.throw(e); })
+            })
+        }
+        step(function(){ return gen.next(undefined); });
+    })
+}
+```
