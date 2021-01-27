@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-11-26 15:36:17
- * @LastEditTime: 2021-01-27 11:06:45
+ * @LastEditTime: 2021-01-27 11:25:41
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /work/daily_study/project.md
@@ -464,4 +464,112 @@ function TermDetail(props: FProps) => {
 }
 
 export default connect(mapToProps)(TermDetail)
+```
+
+### 使用hook去实现接口的封装，触发回调函数
+* 这种方式的使用场景在下面的这种情况下所使用：当涉及到表单的搜索、查询、删除、以及更新时，此时需要用到当前的四个接口，此时就有涉及到下面的这些问题。
+    * 表单更新时，分页的总数
+    * 表单初始化时所需要的数据
+    * 表单加载数据时的loading加载
+    * 表单删除或者是更新时，再次加载数据更新的方式
+    * 接口调用成功之后的回调函数等内容
+* 如下所示，是一种方案, 将其封装成一个hook便于之后的使用
+```
+import { useState } from 'react'
+import { notification } from 'antd'
+
+import { useTable } from './table'
+
+function useHotUpdate() {
+  const {
+    dataList,
+    setDataList,
+    loading,
+    setLoading,
+    pageIndex,
+    setPageIndex,
+    total,
+    setTotal,
+  } = useTable<GetHotUpdateResItem>()
+  const [hotUpdate, setHotUpdate] = useState<GetHotUpdateResItem>(
+    {} as GetHotUpdateResItem,
+  )
+
+  // 获取 hot update
+  const getHotUpdate = (params: GetHotUpdateParams, successCb?: () => void) => {
+    setLoading(true)
+    $httpHot
+      .getHotUpdate(params)
+      .then((res) => {
+        const { hotVersionInfoList, total, pageIndex } = res.data
+
+        setLoading(false)
+        setDataList(hotVersionInfoList)
+        setPageIndex(pageIndex)
+        setTotal(total)
+
+        if (hotVersionInfoList.length === 1) {
+          setHotUpdate(hotVersionInfoList[0])
+        }
+
+        successCb && successCb()
+      })
+      .catch((e) => {
+        notification.error({ message: e })
+        setLoading(false)
+      })
+  }
+
+  // 新建 coupon tpl
+  const createHotUpdate = (params: FormData, successCb?: () => void) => {
+    setLoading(true)
+    $httpHot
+      .createHotUpdate(params)
+      .then(() => {
+        setLoading(false)
+        successCb ? successCb() : notification.success({ message: '创建成功' })
+      })
+      .catch((e) => {
+        notification.error({ message: e })
+        setLoading(false)
+      })
+  }
+
+  // 更新
+  const updateHotUpdate = (
+    params: UpdateHotUpdateParams,
+    successCb?: () => void,
+  ) => {
+    setLoading(true)
+    $httpHot
+      .updateHotUpdate(params)
+      .then(() => {
+        setLoading(false)
+        successCb ? successCb() : notification.success({ message: '修改成功' })
+      })
+      .catch((e) => {
+        notification.error({ message: e })
+        setLoading(false)
+      })
+  }
+
+  return {
+    getHotUpdate,
+    createHotUpdate,
+    updateHotUpdate,
+    hotUpdate,
+    setHotUpdate,
+    hotUpdateLoading: loading,
+    setHotUpdateLoading: setLoading,
+    hotUpdateList: dataList,
+    setHotUpdateList: setDataList,
+    hotUpdateIndex: pageIndex,
+    setHotUpdateIndex: setPageIndex,
+    hotUpdateTotal: total,
+    setHotUpdateTotal: setTotal,
+  }
+}
+
+export default useHotUpdate
+
 ```
