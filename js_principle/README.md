@@ -54,7 +54,7 @@ if(window.XMLHttpRequest) {
         }
     }
 # js基础几个原理运用
-## call与apply
+## call与apply以及bind
 * 两个的方法的异同点，改变this指向，传参列表不同
 ### call方法原理实现方式
 * 首先需要知道eval方法，该方法的作用是去执行里面的js代码
@@ -94,6 +94,88 @@ if(window.XMLHttpRequest) {
     }
 ```
 
+### Function.prototype.bind()
+* bind()方法创建一个新的函数，在bind()被调用时，这个新函数的this被指定为bind()的第一个参数，而其余参数将作为新函数的参数，供调用时使用。如下面的案例所示
+* 创建绑定函数
+```
+const modules = {
+    x: 42,
+    getX: function() {
+      return this.x;
+    }
+};
+console.log(modules)
+  
+const unboundGetX = modules.getX;
+console.log(unboundGetX()); 
+
+const boundGetX = unboundGetX.bind(modules);
+console.log(boundGetX());
+// undefined
+// 42
+```
+* 偏函数,bind另一个简单的用法是使用一个函数拥有预设的初始函数。只要将这些参数(如果有的话)作为bind()的参数写在this后面。当绑定函数被调用时，这些参数会被插入到目标函数的参数
+列表的开始位置，传递给绑定函数的参数会跟在它们后面
+```
+function list() {
+    return Array.prototype.slice.call(arguments);
+}
+
+function addArguments(arg1, arg2) {
+    return arg1 + arg2;
+}
+
+var list1 = list(1, 2, 3);
+console.log(list1);
+
+var result1 = addArguments(1, 2);
+console.log(result1);
+
+var leadingThirtysevenList = list.bind(null, 37);
+
+var addThirtySeven = addArguments.bind(null, 37);
+
+var list2 = leadingThirtysevenList();
+console.log(list2);
+
+var list3 = leadingThirtysevenList(1, 2, 3);
+console.log(list3);
+
+var result2 = addThirtySeven(5);
+console.log(result2);
+
+var result3 = addThirtySeven(5, 10);
+console.log(result3);
+
+```
+* bind原理实现,在这里需要补充下Array.prototype.slice.call(arguments)能将具有length属性的对象(key值为数字)转成数组。[] 是Array的示例，所以可以直接使用[].slice（）方法。
+```
+Function.prototype.newBind = function() {
+    var self = this,
+        context = [].shift.call(arguments),
+        args = [].slice.call(arguments);
+    return function() {
+        return self.apply(context, [].concat.call(args, arguments))
+    }
+}
+
+
+const modules = {
+    x: 42,
+    getX: function() {
+      return this.x;
+    }
+};
+console.log(modules)
+  
+const unboundGetX = modules.getX;
+console.log(unboundGetX()); 
+const boundGetX = unboundGetX.newBind(modules);
+console.log(boundGetX());
+```
+### 三者之间的区别：
+* 共同点：都可以改变函数执行的上下文环境；
+* 不同点：bind: 不立即执行函数，一般用在异步调用和事件； call/apply： 立即执行函数。
 ## 函数抖动与函数节流
 ### 函数防抖
 * 含义：指的是触发事件后n秒内函数只能执行一次，如果在n秒内又触发了该事件，则会重新计算函数执行时间
@@ -214,5 +296,7 @@ const newCurry = function (fn, length) {
 * 不同点：
     * 函数抖动，在一段连续操作后，处理回调函数，利用clearTimeout和setTimeout实现。函数节流，在一段连续操作中，每一段时间只执行一次，频率较高的事件中使用来提高性能
     * 函数抖动关注一定时间连续触发，只在最后一次执行，而函数节流侧重于一段时间内只执行一次
+
+
 
 
