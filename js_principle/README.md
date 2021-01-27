@@ -1,0 +1,218 @@
+# Ajax
+## Ajax-创建XMLHttpRequest对象的方式
+* 由于XMLHttpRequest对象存在兼容性问题，主要是老版本的IE6和IE7使用的是ActiveX对象。该实例创建的方式如下：
+```
+let xmlHttp;
+if(window.XMLHttpRequest) {
+    xmlHttp = new XMLHttpRequest();
+}else {
+    xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+}
+```
+## Ajax-向服务器发送请求的方式
+* 使用open和send方法来向服务器发送请求，实现的方式如下所示
+```
+    xmlHttp.send("GET", "test.txt", true);
+    xmlHttp.open();
+```
+* 在上面的实例方法中使用了open和send方法，两个方法中传入的参数解释如下
+    * send: open(method, url, async),method表示请求的类型，GET还是POST；url：指的是文件在服务器上的位置；async：true(异步)和false(同步)
+    * open(string): 将请求发送到服务器，string仅仅用在POST请求当中
+* 两种方式发送的实例如下
+    * get请求：
+    ```
+        xmlHttp.send("GET", "demo_get.asp?T=" + Math.random(), true);
+        xmlHttp.open()
+    ```
+    * post请求
+    ```
+        xmlHttp.send("POST", "ajax_test.asp", true);
+        xmlHttp.setRequestHeader("Content-type", "application/json");
+        xmlHttp.open("fname=Bill&lname=GEates");
+    ```
+## Ajax-服务器响应
+* 服务器响应方式，需要使用到XMLHttpRequest对象的responseText和responseXml
+    * responseText: 获得字符串形式的响应数据
+    * responseXml：获的Xml形式的响应数据
+## Ajax-onreadystatechange事件
+* 当请求被发送到服务器时，需要执行一些基于响应的任务，当readyState改变时，就会去触发onreadystatechange事件
+* XMLHttpRequest对象的三个重要的属性
+    * onreadystatechange： 存储函数，当readyState属性改变时，就会去触发这个函数
+    * readyState几个状态，从0到4发生变化
+        * 0： 请求初始化
+        * 1： 服务器连接已经建立
+        * 2： 请求接收中
+        * 3： 请求处理中
+        * 4： 请求处理完成，并且响应已就绪
+    * status
+        * 200： "OK"
+        * 404: 未找到网页
+* 当响应成功后就会去有下面的实例发生
+    xmlHttp.onreadystatechange = function() {
+        if(xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            ....//执行你想要的操作
+        }
+    }
+# js基础几个原理运用
+## call与apply
+* 两个的方法的异同点，改变this指向，传参列表不同
+### call方法原理实现方式
+* 首先需要知道eval方法，该方法的作用是去执行里面的js代码
+* 其传递多个参数，第一个参数表示this执行，后面表示的是传入的参数列表，实现原理如下：
+```
+    Function.prototype.newCall = function() {
+        var ctx = arguments[0] || window;
+        ctx.fn = this;
+        var arr = [];
+        for(var i = 1; i < arguments.length; i++> {
+            arr.push('arguments['+ i +']');
+        })
+        var result = eval('ctx.fn('+arr.join(',')+')')
+        delete ctx.fn;
+        return result;
+    }
+```
+### apply方法原理实现方式
+* 其传递两个参数，第一个参数表示this执行，第二个参数是一个数组，存放参数列表中的内容
+```
+    Function.prototype.newApply = function(ctx, arr) {
+        var ctx = arguments[0] || window;
+        ctx.fn = this;
+        if(!arr) {
+            var result = ctx.fn();
+            delete ctx.fn;
+            return result;
+        } else {
+            var args = [];
+            for(let i = 0; i < arr.length; i++) {
+                arr.push('arguments['+ i +']');
+            }
+            var result = eval('ctx.fn('+ args.join(',') +')');
+            delete ctx.fn;
+            return result;
+        }
+    }
+```
+
+## 函数抖动与函数节流
+### 函数防抖
+* 含义：指的是触发事件后n秒内函数只能执行一次，如果在n秒内又触发了该事件，则会重新计算函数执行时间
+* 使用场景：连续的事件，只需要去触发一次回调函数
+    * 搜索框搜索输入，只需要用户最后一次输入外，再发送请求
+    * 手机号、邮箱验证输入检测
+    * 窗口大小Resize。只需要窗口调整完成后，计算窗口大小，防止重复渲染
+* 简单实现方式
+```
+    const debounce = (func, wait) => {
+        let timer;
+        return () => {
+            clearTimeout(timer);
+            timer = setTimeout(func, wait);
+        }
+    }
+```
+### 函数节流
+* 含义： 指的是限定一个函数在一定时间内只能执行一次
+* 使用场景：间隔一段事件执行一次回调函数
+    * 滚动加载，加载更多或滚动到底部监听
+    * 谷歌搜索框，搜索联想功能
+    * 高频点击提交，表单重复提交
+* 简单实现方式
+const throttle = (func, wait) => {
+    let timer;
+    return () => {
+        if(timer) {
+            return;
+        }
+        timer = setTimeout(() => {
+            func();
+            timer = null;
+        }, wait)
+    }
+}
+
+## 函数柯里化与数组扁平化
+### 函数柯里化
+* 对于函数柯里化的理解，通俗来说就是在函数参数传递的过程中可以通过多此的参数传递，使得这个函数的参数个数达到饱和。
+* 函数柯里化的实现原理：
+```
+//将函数的参数划分为两部分
+function FixedCurry(fn) {   
+    //将类数组之后的元素给放在当前的这个数组当中
+    const  _args = [].slice.call(arguments, 1);
+    return function() {
+        const newArgs = _args.concat([].slice.call(arguments, 0));
+        return fn.apply(this, newArgs)
+    }
+}
+
+//采用递归的思想，重复上述的这个过程
+const newCurry = function (fn, length) {
+    if(arguments.length < length) {
+        const combined = [fn].concat([].slice.call(arguments, 0));
+        return newCurry(FixedCurry.apply(this, combined), length - arguments.length);
+    } else {
+        return fn.apply(this, arguments)
+    }
+}
+```
+### 数组扁平化
+* 数组扁平化的函数就是将一个多维数组转化为一个一维数组的过程
+```
+    //判断参数是否为一个数组的方式，可以采用isArray,也可以采用下面的方式来封装
+    function isArray(obj){
+        return Object.prototype.toString.call(obj) === '[object Array]
+    }
+    //数组扁平化方法，采用两种方式来实现
+    Array.prototype.flatten = function(){
+        const result = [];
+        this.forEach(function(item)) {
+            isArray(item) ? result = result.concat(item.flatten) : result.push(item);
+        }
+        return result;
+    }
+
+    function flatten(arr) {
+        const result = arr || [];
+        return arr.reduce(function(prev, next){
+            return isArray(next) ? result = result.concat(flatten(next)): result.concat(next)
+        },[]);
+    }
+```
+
+## 纯函数与记忆函数
+### 纯函数
+* 含义：对于纯函数的理解其实非常简单，在一个函数中，该函数接收某种类型的输入就会得到相同类型的输出
+* 好处：使用纯函数编程的方式就只需要去考虑输入与输出
+* 案列：在redux中的reducer就是一个纯函数，具体可以参考这个
+### 记忆函数
+* 含义：能够将上一次输出的结果保存下来给下一次函数下一次使用。其实其本质就是设置一个缓存的解构，以空间来换取时间的过程
+* 具体实例，以斐波拉契数列为例，实例如下：
+```
+    function factorial(n) {
+        const cache = {};
+        return function _fib(n){
+            if(cache[n]) {
+                return cache[n]
+            }else{
+                if(n === 1 || n === 2) {
+                    cache[n] = 1;
+                    return 1;
+                }else{
+                    cache[n] = n*_fib(n - 1);
+                    return cache[n];
+                }
+            }
+        _fib(n)
+    }
+```
+
+### 两者的相同点与异同点
+* 相同点：
+    * 都可以通过setTimeout实现
+    * 目的都是降低回调执行频率，节省计算资源
+* 不同点：
+    * 函数抖动，在一段连续操作后，处理回调函数，利用clearTimeout和setTimeout实现。函数节流，在一段连续操作中，每一段时间只执行一次，频率较高的事件中使用来提高性能
+    * 函数抖动关注一定时间连续触发，只在最后一次执行，而函数节流侧重于一段时间内只执行一次
+
+
