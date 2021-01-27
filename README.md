@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-11-26 15:36:17
- * @LastEditTime: 2021-01-19 15:43:45
+ * @LastEditTime: 2021-01-27 11:06:45
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /work/daily_study/project.md
@@ -383,7 +383,12 @@ translateZ(0)或者translate3d(0,0,0)去使浏览器创建图层。这种⽅式�
 * 关于以上两个warning的解决方式，第一个是需要传入valuePropName属性与name属性值即可解决，第二个解决方式则是需要传入transformFile属性即可解决
 
 ###  ts中对于dva使用
+* dva是基于redux和redux-saga结合起来的数据流方案，简化的了开发。相当于将这两个给整合在一起了。对于dva需要了解其数据流向，可以在组件中触发dispatch也可以在
+Model中通过Subscription去监听数据的流向。
 #### model建立
+* 在ts中需要定义严格的数据类型，因而在创建model时，需要先指定创建的model的数据类型，一般包括以下几部分，namespace state effects reducers 这四部分的内容，namespace表示
+命名空间，在使用dispatch调用时，需要通过namespace以及reducers中的方法来触发。state中所存储的就是当前的数据，有什么样的数据就定义什么样子的数据类型。effects中主要存放的就是
+与服务器连接的内容。所以定义的model就如下面的内容所示：
 ```
 import { Reducer, AnyAction } from 'redux'
 import { useDispatch, Effect } from 'dva'
@@ -430,12 +435,14 @@ export function useTermDetail() {
 export default Model
 
 ```
-#### 调用set
+#### 调用dispatch
+* 此时的dispatch方法已经被再次给封装起来了，在下面的案例这里被封装在了setTermDetailRedux中，所以在这里就可以将所要传入的数据放在当中即可
 ```
 const { setTermDetailRedux } = useTermDetail()
 setTermDetailRedux({ termRes: record })
 ```
 #### connect函数
+* connect函数是将组件与state给连接起来的方式，通过向connect中传入所需要的数据，就可以拿到所需要的数据
 ```
 //定义mapToProps
 const mapToProps = ({ termdetail }: ConnectedReduxType) => {
