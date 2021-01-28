@@ -297,6 +297,168 @@ const newCurry = function (fn, length) {
     * 函数抖动，在一段连续操作后，处理回调函数，利用clearTimeout和setTimeout实现。函数节流，在一段连续操作中，每一段时间只执行一次，频率较高的事件中使用来提高性能
     * 函数抖动关注一定时间连续触发，只在最后一次执行，而函数节流侧重于一段时间内只执行一次
 
+## Promise原理实现
+* 首先需要明白Promise的特点为以下内容：
+    * Promise具有三个状态pending(就绪) fulfilled(成功) rejected(失败)
+    * 状态一旦改变，就不会再改变，改变状态只能有两种可能，pending->fulfilled  pending->rejected
+* 因此基于上面的内容，就可以直接封装Promise函数，如下所示
+```
+//promise中的三种状态描述
+const PROMISESTATUS = {
+    PENDING: 'pending',
+    FULFILLED: 'fulfilled',
+    REJECTED: 'rejected',
+};
 
+//该方法的作用是用于判断这个参数是不是一个函数
+const isFunction = (fn) => typeof fn === 'function';
 
+class MyPromise {
+    constructor(handle) {
+        //首先判断函数是否是函数，不是函数直接抛出错误信息
+        if(!isFunction(handle)) {
+            throw new Error('myPromise must accept a function as a paramter');
+        }
 
+        // 状态添加
+        //status表示当前的实例的状态，value表示resolve或者是rejeted抛出的值
+        this._status = PROMISESTATUS.PENDING;
+        this._value = undefined;
+
+        try {
+            //直接在构造函数中处理
+            handle(this._resolve.bind(this), this._reject.bind(this));
+        } catch(e) {
+            this._reject(e);
+        }
+    }
+
+    //resolve方法
+    _resolve(val) {
+        //表示pending->fulfilled状态
+        if(this._status !== PROMISESTATUS.PENDING) return;
+        this._status = PROMISESTATUS.FULFILLED;
+        this._value = val;
+    }
+
+    //reject方法
+    _reject(val) {
+        //表示pengding->rejeted状态
+        if(this._status !== PROMISESTATUS.PENDING) return;
+        this._status = PROMISESTATUS.REJECTED;
+        this._value = val;
+    }
+}
+
+```
+* Promise.prototype.then，该方法的作用是为Priomise实例添加状态改变时的回调函数。对于其实现的源码如下所示
+```
+//相同部分如上所示：
+const PROMISESTATUS = {
+    PENDING: 'pending',
+    FULFILLED: 'fulfilled',
+    REJECTED: 'rejected',
+};
+
+const isFunction = (fn) => typeof fn === 'function';
+class MyPromise {
+    constructor(handle) {
+        if(!isFunction(handle)) {
+            throw new Error('myPromise must accept a function as a paramter');
+        }
+
+        // 状态添加
+        this._status = PROMISESTATUS.PENDING;
+        this._value = undefined;
+
+        //添加回调函数队列
+        this._fulfilledQueues = [];
+        this._rejectedQUeues = [];
+        try {
+            handle(this._resolve.bind(this), this._reject.bind(this));
+        } catch(e) {
+            this._reject(e);
+        }
+    }
+
+    //resolve方法
+    _resolve(val) {
+        if(this._status !== PROMISESTATUS.PENDING) return;
+        this._status = PROMISESTATUS.FULFILLED;
+        this._value = val;
+    }
+
+    //reject方法
+    _reject(val) {
+        if(this._status !== PROMISESTATUS.PENDING) return;
+        this._status = PROMISESTATUS.REJECTED;
+        this._value = val;
+    }
+
+    //then方法最后返回的是一个新的Promise实例
+    then(onFulfilled, onRejected) {
+        //或许当前实例的value值与status值
+        const { _value, _status } = this;
+        return new MyPromise((onFulfilledNext, onRejectedNext) => {
+            // 封装一个成功时执行的函数
+            let fulfilled = value => {
+                try {
+                    if (!isFunction(onFulfilled)) {
+                        onFulfilledNext(value)
+                    } else {
+                        let res = onFulfilled(value);
+                        if ( res instanceof MyPromise) {
+                            res.then(onFulfilledNext, onRejectedNext)
+                        } else {
+                            onFulfilledNext(res);
+                        }
+                    }
+                } catch(e) {
+                    onRejectedNext(e);
+                }
+            }
+
+            let rejected = error => {
+                try {
+                   if (!isFunction(onRejected)) {
+                        onRejectedNext(error);
+                   } else {
+                        let res = onRejected(error);
+                        if ( res instanceof MyPromise) {
+                            res.then(onFulfilledNext, onRejectedNext);
+                        } else {
+                            onRejectedNext(res);
+                        }
+                   }
+                } catch(e) {
+                    onRejectedNext(e);
+                }
+            }
+            switch(_status) {
+                case PROMISESTATUS.PENDING:
+                    this._fulfilledQueues.push(fulfilled);
+                    this._rejectedQUeues.push(rejected);
+                    break;
+                case PROMISESTATUS.FULFILLED:
+                    fulfilled(_value);
+                    break;
+                case PROMISESTATUS.REJECTED:
+                    rejected(_value);
+                    break;
+            }
+        })
+    }
+}
+
+let promise1 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      reject('fail')
+    }, 1000)
+  })
+  promise2 = promise1.then(res => res, '这里的onRejected本来是一个函数，但现在不是')
+  promise2.then(res => {
+    console.log(res)
+  }, err => {
+    console.log(err)  
+  })
+```

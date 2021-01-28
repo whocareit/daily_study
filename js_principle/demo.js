@@ -68,11 +68,117 @@
 // const boundGetX = unboundGetX.newBind(modules);
 // console.log(boundGetX());
 
-function f() {
-    console.log(Array.prototype.shift.call(arguments));
-    console.log([].shift.call(arguments));
+// function f() {
+//     console.log(Array.prototype.shift.call(arguments));
+//     console.log([].shift.call(arguments));
     
-    console.log([].slice.call(arguments));
+//     console.log([].slice.call(arguments));
+// }
+
+// f({a: 1, b: 2}, 3 ,4 ,5)
+
+const PROMISESTATUS = {
+    PENDING: 'pending',
+    FULFILLED: 'fulfilled',
+    REJECTED: 'rejected',
+};
+
+const isFunction = (fn) => typeof fn === 'function';
+class MyPromise {
+    constructor(handle) {
+        if(!isFunction(handle)) {
+            throw new Error('myPromise must accept a function as a paramter');
+        }
+
+        // 状态添加
+        this._status = PROMISESTATUS.PENDING;
+        this._value = undefined;
+
+        //添加回调函数队列
+        this._fulfilledQueues = [];
+        this._rejectedQUeues = [];
+        try {
+            handle(this._resolve.bind(this), this._reject.bind(this));
+        } catch(e) {
+            this._reject(e);
+        }
+    }
+
+    //resolve方法
+    _resolve(val) {
+        if(this._status !== PROMISESTATUS.PENDING) return;
+        this._status = PROMISESTATUS.FULFILLED;
+        this._value = val;
+    }
+
+    //reject方法
+    _reject(val) {
+        if(this._status !== PROMISESTATUS.PENDING) return;
+        this._status = PROMISESTATUS.REJECTED;
+        this._value = val;
+    }
+
+    then(onFulfilled, onRejected) {
+        const { _value, _status } = this;
+        return new MyPromise((onFulfilledNext, onRejectedNext) => {
+            // 封装一个成功时执行的函数
+            let fulfilled = value => {
+                try {
+                    if (!isFunction(onFulfilled)) {
+                        onFulfilledNext(value)
+                    } else {
+                        let res = onFulfilled(value);
+                        if ( res instanceof MyPromise) {
+                            res.then(onFulfilledNext, onRejectedNext)
+                        } else {
+                            onFulfilledNext(res);
+                        }
+                    }
+                } catch(e) {
+                    onRejectedNext(e);
+                }
+            }
+
+            let rejected = error => {
+                try {
+                   if (!isFunction(onRejected)) {
+                        onRejectedNext(error);
+                   } else {
+                        let res = onRejected(error);
+                        if ( res instanceof MyPromise) {
+                            res.then(onFulfilledNext, onRejectedNext);
+                        } else {
+                            onRejectedNext(res);
+                        }
+                   }
+                } catch(e) {
+                    onRejectedNext(e);
+                }
+            }
+            switch(_status) {
+                case PROMISESTATUS.PENDING:
+                    this._fulfilledQueues.push(fulfilled);
+                    this._rejectedQUeues.push(rejected);
+                    break;
+                case PROMISESTATUS.FULFILLED:
+                    fulfilled(_value);
+                    break;
+                case PROMISESTATUS.REJECTED:
+                    rejected(_value);
+                    break;
+            }
+        })
+    }
 }
 
-f({a: 1, b: 2}, 3 ,4 ,5)
+let promise1 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      reject('fail')
+    }, 1000)
+  })
+  promise2 = promise1.then(res => res, '这里的onRejected本来是一个函数，但现在不是')
+  promise2.then(res => {
+    console.log(res)
+  }, err => {
+    console.log(err)  
+  })
