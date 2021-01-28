@@ -462,3 +462,101 @@ let promise1 = new Promise((resolve, reject) => {
     console.log(err)  
   })
 ```
+
+## redux原理简单模拟
+### redux简单概述
+* store，就是保存数据的地方，可以将其看成一个容器，redux中提供了createStore这个函数，来生成store，如下所示：
+```
+import { createStore } from 'redux';
+
+//这里的fn是reducer
+const store = createStore(fn);
+```
+* state，对象中所包含的所有数据。可以通过store.getState()来获取到
+```
+import { createStore } from 'redux';
+
+const store = createStore(fn);
+const state = store.getState();
+```
+* store.dispatch(),视图层通过dispatch(action)去触发数据更新，如下所示：
+```
+import { createStore } from 'redux';
+const store = createStore(fn);
+
+store.dispatch({
+    type: '',
+    paload: ''
+})
+```
+* reducer,store收到action以后，必须给出一个新的State。如下所示：
+```
+const reducer = function (state, action) {
+    return new_state;
+}
+```
+* store.subcribe(),用于监听函数，一旦state发生变化，就自动执行这个函数
+### 简单原理实现
+* createStore函数实现
+```
+function createStore(stateChange) {
+    let state = null;
+    const listeners = [];
+    const subscribe = listener => listeners.push(listener);
+    const getState = () => state;
+    const dispatch = (action) => {
+        state = stateChange(state, action);
+        listeners.forEach(listener => listener());
+    }
+    dispatch({});
+    return { getState, dispatch, subscribe };
+}
+```
+* connect函数简单实现
+```
+import { Component } from 'react';
+import PropTypes from 'prop-types'
+
+export const connect = (mapStateToProps, mapDispatchToProps) => (WrapperComponent) => {
+    class Connect extends Component {
+        static contextTypes = {
+            store: PropTypes.object
+        }
+
+        constructor() {
+            super();
+            this.state = {
+                allProps: {}
+            }
+        }
+
+        componentDidMount() {
+            const { store } = this.context
+            this._updateProps();
+            store.subscribe(() => this._updateProps())
+        }
+
+        _updateProps() {
+            const { store } = this.context;
+            let stateProps = mapStateToProps ? mapStateToProps(store.getState(), this.props) : {}
+            let dispatchProps = mapDispatchToProps ? mapDispatchToProps(store.dispatch, this.props) : {}
+            this.setState({
+                allProps: {
+                    ...stateProps,
+                    ...dispatchProps,
+                    ...this.props
+                }
+            })
+        }
+
+
+        render() {
+            return(
+                <WrapperComponent {...this.state.allProps}/>
+            )
+        }
+    }
+
+    return Connect;
+}
+```
