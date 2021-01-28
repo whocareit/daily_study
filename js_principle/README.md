@@ -560,3 +560,51 @@ export const connect = (mapStateToProps, mapDispatchToProps) => (WrapperComponen
     return Connect;
 }
 ```
+
+## fetch
+* 提供了一个获取资源的接口(包括跨域请求)，fetch提供了对request和response对象的通用定义。使之今后可以被使用到更多地应用场景中：无论是service worker、catch api又或者是其他
+处理请求和响应的方式，甚至是任何一种需要在程序中生成响应的方式。同时还为有关联性的概念，例如CORS和HTTP原生头信息，提供了一种新的定义，取代它们原生那种分离的定义。在发送请求或者是获取
+资源时，需要使用WindowOWorkerGlobalScope.fetch()方法。其在很多接口中都被实现了，更具体的说，是在Window和WorkerGlobalScope接口上。因此在几乎所有环境中都可以用这个方法获取到资源。
+### fetch接口
+* WindowOrWorkerGlobalScope.fetch(),包含fetch方法，用于获取资源
+* Headers,相当于response/request的头信息，可以使你查询到头信息，或者针对不同的结果做不同的操作
+* Request,相当于一个资源请求
+* Response,相当于请求的响应
+
+### using fetch
+* fetch提供了一个新的js接口，用于访问和操作http管道的一些具体部分，例如请求和响应。它还提供了一个全局fetch()方法，该方法提供了一种简单，合理的方式来跨网络异步请求获取资源
+* 需要注意fetch规范与jQuery.ajax()主要用三种方式的不同
+    * 当接收到一个代表错误的HTTP状态码时，从fetch()返回的Promise不会被标记为reject(但是会将resoleve的返回值的ok属性设置为false())，仅当网络故障时或请求被阻止时，才会被标记reject
+    * fetch()可以不接受cookies;可以使用fetch()建立起跨域会话
+    * fetch()不会发送cookies。除非使用credentials的初始化选择
+* 一个fetch的简单实例
+```
+fetch('http://example.com/movies.json')
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(myJson) {
+        console.log(myJson);
+    })
+```
+* fetch可以接受第二个可选参数，一个可以控制不同配置的init对象，如下所示：
+```
+fucntion postData(url, data) {
+    return fetch(url, {
+        body: JSON.stringify(data),
+        cache: 'no-cache',
+        credentials: 'same-origin',
+        headers: {
+            'user-agent': 'Mozilla/4.0 MDN Example',
+            'content-type': 'application/json',
+        },
+        mothed: 'POST',
+        mode: 'cors',
+        redirect: 'follow',
+        referrer: 'no-referrer',
+    })
+}
+```
+* init配置项中的内容，一个配置项对象，包括对所有请求的设置。可选的参数有：
+    * method: 请求使用的方法，如GET、POST
+    * headers：请求的头信息
