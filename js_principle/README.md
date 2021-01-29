@@ -607,4 +607,108 @@ fucntion postData(url, data) {
 ```
 * init配置项中的内容，一个配置项对象，包括对所有请求的设置。可选的参数有：
     * method: 请求使用的方法，如GET、POST
-    * headers：请求的头信息
+    * headers：请求的头信息，形式为Headers的对象或包含ByteString值的对象字面量
+    * body：请求的body信息：可能是一个Blob、BufferSource、FormData、URLSearchParams或者USVString对象。**注意GET或HEAD方法的请求不能包含body信息**
+    * mode：请求的模式，如cors、no-cors或者same-origin
+    * credentials：请求的credentials，如omit same-rigin或者include。为了在当前域名内自动发送cookie，必须提供这个选择。
+    * cache: 请求的cache模式：default、no-store、relaod、no-cache、force-cache或者only-if-cached
+    * redirect: 可用的redirect模式
+    * referrer
+    * referrerPolicy：指定HTTP头部referer字段的值
+    * intergrity
+* 发送带凭证的请求,为了让浏览器发送包含凭据的请求(即使是跨域源)，要将credentials：'include'添加到传递给fetch()方法的init对象
+```
+fetch('https://example.com', {
+    credentials: 'include'
+})
+```
+* 上传JOSN数据,使用fetch()POST json数据
+```
+var url = 'https://example.com/profile';
+var data = { username: 'example' };
+
+fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: new Headers({
+        "Content-Type": "application/json"
+    })
+}).then(res => res.json)
+  .catch(error => console.error('Error:', error))
+  .then(response => console.log('Success:', response));
+```
+
+* 上传文件，可以通过HTML<input type="file" multiple>元素，FormData()和fetch()上传文件
+```
+var formData = new FormData();
+var photos = document.querySelector("iuput[type='file'][multiple]");
+formData.append('title', 'My Vegas Vacation');
+
+for(let i = 0; i < photos.files.length; i++) {
+    formData.append('photo', photos.files[i]);
+}
+
+fetch('https://example.com/posts', {
+    method: 'POST',
+    body: formData
+})
+.then(response => response.json)
+.then(response => console.log('Success: ', JSON.stringify(response)))
+.catch(error => console.error('Error: ',error))
+```
+* 检测请求是否成功，当遇到网络故障，fetch()promise将会reject，带上一个TypeError对象。虽然这个情况经常是遇到了权限问题或类似问题-比如404不是一个网络故障。想要精确的判断fetch()是否成功，需要包含
+promise resolved的情况，此时再判断Response.ok是不是为true，如下所示：
+```
+fetch('flowers.jpg').then(function (response) {
+    if(response.ok) {
+        return response.blob();
+    }
+    throw new Error('Network response was not ok.');
+}).then(function (myBlob) {
+    var objectURL = URL.createObjectURL(myBlob);
+    myImage.src = objectURL;
+}).catch(function (error) {
+    console.log('There has been a problem with you fetch operation: ', error.message);
+})
+```
+* 自定义请求对象，除了传给fetch()一个资源的地址，还可以通过使用Request()构造函数来创建一个request对象，然后再作为参数传给fetch(),如下所示：
+```
+var myHeaders = new Headers();
+
+var myInit = { 
+    method: 'GET',
+    headers: myHeaders,
+    mode: 'cors',
+    cache: 'fefault'
+};
+
+var myRequest = new Request('flowers.jps', myInit);
+
+fetch(myRequest).then(function(response) {
+    return response.blob();
+}).then(function(myBlob) {
+    var objectURL = URL.createObjectURL(myBlob);
+    myImage.src = objectURL;
+})
+```
+#### Response对象
+* Response实例是在fetch()处理完promise之后返回的
+* 常用response属性有以下内容：
+    * Response.status-整数为response的状态码
+    * Response.statusText-字符串，该值与HTTP状态码消息对应
+    * Response.ok-该属性是用来检查response的状态是都在200-299这个范围内，该返回值是一个boolean
+
+#### body
+* 不管是请求还是响应都包含body对象。body也可以是以下任意类型的实例
+    * ArrayBuffer
+    * ArrayBufferView
+    * Blob/File
+    * string
+    * URLSearchParams
+    * FormData
+* Body类定义了以下方法(这些方法都被Request和Response所实现)以获取body内容。这样方法都会返回一个被解析后的Promise对象和数据
+    * arrayBuffer()
+    * blob()
+    * json()
+    * text()
+    * formData()

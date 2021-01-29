@@ -183,61 +183,120 @@
 //     console.log(err)  
 // })
 
-function createStore (stateChange) {
-    let state = null;
-    const listeners = [];
-    const subscribe = listener => listeners.push(listener);
-    const getState = () => state;
-    const dispatch = (action) => {
-        state = stateChange(state, action);
-        listeners.forEach(listener => listener());
-    }
-    dispatch({});
-    return { getState, dispatch, subscribe };
-}
+// function createStore (stateChange) {
+//     let state = null;
+//     const listeners = [];
+//     const subscribe = listener => listeners.push(listener);
+//     const getState = () => state;
+//     const dispatch = (action) => {
+//         state = stateChange(state, action);
+//         listeners.forEach(listener => listener());
+//     }
+//     dispatch({});
+//     return { getState, dispatch, subscribe };
+// }
 
-import { Component } from 'react';
-import PropTypes from 'prop-types'
+// import { Component } from 'react';
+// import PropTypes from 'prop-types'
 
-export const connect = (mapStateToProps, mapDispatchToProps) => (WrapperComponent) => {
-    class Connect extends Component {
-        static contextTypes = {
-            store: PropTypes.object
-        }
+// export const connect = (mapStateToProps, mapDispatchToProps) => (WrapperComponent) => {
+//     class Connect extends Component {
+//         static contextTypes = {
+//             store: PropTypes.object
+//         }
 
-        constructor() {
-            super();
-            this.state = {
-                allProps: {}
-            }
-        }
+//         constructor() {
+//             super();
+//             this.state = {
+//                 allProps: {}
+//             }
+//         }
 
-        componentDidMount() {
-            const { store } = this.context
-            this._updateProps();
-            store.subscribe(() => this._updateProps())
-        }
+//         componentDidMount() {
+//             const { store } = this.context
+//             this._updateProps();
+//             store.subscribe(() => this._updateProps())
+//         }
 
-        _updateProps() {
-            const { store } = this.context;
-            let stateProps = mapStateToProps ? mapStateToProps(store.getState(), this.props) : {}
-            let dispatchProps = mapDispatchToProps ? mapDispatchToProps(store.dispatch, this.props) : {}
-            this.setState({
-                allProps: {
-                    ...stateProps,
-                    ...dispatchProps,
-                    ...this.props
-                }
-            })
-        }
+//         _updateProps() {
+//             const { store } = this.context;
+//             let stateProps = mapStateToProps ? mapStateToProps(store.getState(), this.props) : {}
+//             let dispatchProps = mapDispatchToProps ? mapDispatchToProps(store.dispatch, this.props) : {}
+//             this.setState({
+//                 allProps: {
+//                     ...stateProps,
+//                     ...dispatchProps,
+//                     ...this.props
+//                 }
+//             })
+//         }
 
 
-        render() {
-            return(
-                <WrapperComponent {...this.state.allProps}/>
-            )
-        }
-    }
+//         render() {
+//             return(
+//                 <WrapperComponent {...this.state.allProps}/>
+//             )
+//         }
+//     }
 
-    return Connect;
-}
+//     return Connect;
+// }
+
+// var url = 'https://example.com/profile';
+// var data = { username: 'example' };
+
+// fetch(url, {
+//     method: 'POST',
+//     body: JSON.stringify(data),
+//     headers: new Headers({
+//         "Content-Type": "application/json"
+//     })
+// }).then(res => res.json)
+//   .catch(error => console.error('Error:', error))
+//   .then(response => console.log('Success:', response));
+
+// var formData = new FormData();
+// var photos = document.querySelector("iuput[type='file'][multiple]");
+// formData.append('title', 'My Vegas Vacation');
+
+// for(let i = 0; i < photos.files.length; i++) {
+//     formData.append('photo', photos.files[i]);
+// }
+
+// fetch('https://example.com/posts', {
+//     method: 'POST',
+//     body: formData
+// })
+// .then(response => response.json)
+// .then(response => console.log('Success: ', JSON.stringify(response)))
+// .catch(error => console.error('Error: ',error))
+
+// fetch('flowers.jpg').then(function (response) {
+//     if(response.ok) {
+//         return response.blob();
+//     }
+//     throw new Error('Network response was not ok.');
+// }).then(function (myBlob) {
+//     var objectURL = URL.createObjectURL(myBlob);
+//     myImage.src = objectURL;
+// }).catch(function (error) {
+//     console.log('There has been a problem with you fetch operation: ', error.message);
+// })
+
+// var myHeaders = new Headers();
+
+// var myInit = { 
+//     method: 'GET',
+//     headers: myHeaders,
+//     mode: 'cors',
+//     cache: 'fefault'
+// };
+
+// var myRequest = new Request('flowers.jps', myInit);
+
+// fetch(myRequest).then(function(response) {
+//     return response.blob();
+// }).then(function(myBlob) {
+//     var objectURL = URL.createObjectURL(myBlob);
+//     myImage.src = objectURL;
+// })
