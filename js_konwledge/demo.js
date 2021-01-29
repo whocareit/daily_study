@@ -300,3 +300,71 @@
 //     var objectURL = URL.createObjectURL(myBlob);
 //     myImage.src = objectURL;
 // })
+
+
+// //模块a.js
+// const name = 'hello'
+
+// module.exports = {
+//     name,
+//     github: 'https://github.com'
+// }
+
+// //模块b.js
+
+// const path = require('path');
+// const { name, github } = require('./a');
+// console.lohg(name, github, path.basename(github))
+
+
+// //modell.js
+// define(function() {
+//     console.log('model1 entry');
+//     return {
+//         getHello: function() {
+//             return 'model1';
+//         }
+//     }
+// })
+
+// //model2.js
+// define(function() {
+//     console.log('model2 entry');
+//     return {
+//         getHello: function() {
+//             return 'model2';
+//         }
+//     }
+// })
+
+// //main.js
+// define(function() {
+//     var model1 = require('./model1.js');
+//     console.log(model1.getHello());
+//     var model2 = require('./model2.js');
+//     console.log(mode2.getHello());
+// })
+
+// <script src="https://cdn.bootcss.com/require.js/2.3.6/require.min.js"></script>
+// <script>
+//     requirejs(['main']);
+// </script>
+
+// (function (global,factory) {
+//     typeof exports === 'obeject' && typeof module !== 'undefined' ? module.exports = factory() : 
+//     typeof define === 'function' && define.amd ? define(fatory) : 
+//     (global = global || self , global.myBundle = factory());
+// })(this, (function () {
+//     'use strict';
+
+//     var main = () => {
+//         return 'hello world'
+//     }
+
+//     return main;
+// }))
+
+// <script src="bundle.js"></script>
+// <script>
+//   console.log(myBundle());
+// </script>

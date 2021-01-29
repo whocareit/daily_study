@@ -712,3 +712,150 @@ fetch(myRequest).then(function(response) {
     * json()
     * text()
     * formData()
+
+## AMD、CommonJs、CMD、UMD、ES6
+### CommonJs
+* 主要运行与服务器端，该规范指出，一个单独的文件就是一个模块。Node.js为主要实践者。它有重要的环境变量为模块化的实现提供支持: module exports require global。require命令用于
+输出其他模块提供的功能，module.exports命令用于规范模块的对外借口，输出的是一个值的拷贝，输出之后就不能改变，就会缓存起来，如下所示
+```
+//模块a.js
+const name = 'hello'
+
+module.exports = {
+    name,
+    github: 'https://github.com'
+}
+
+//模块b.js
+
+const path = require('path');
+const { name, github } = require('./a');
+console.lohg(name, github, path.basename(github))
+```
+* CommonJs采用同步加载模块，而加载的文件资源大多数在本地服务器当中，所以执行速度或时间没有问题，但是在浏览器端，限于网络原因，更加合理的方案是使用异步加载
+### AMD
+* AMD是"Asynchronous Module definition"的缩写。采用异步方式加载模块，模块的还在不影响它后面语句的运行。所有以来这个模块的语句，都定义在一个回调函数中，等到
+加载完成之后，这个回调函数才会运行。其中RequireJs是实践者。
+* 模块功能主要的几个命令：define、require、return和define.amd。define是全局函数，用来定义模块，define(id?, dependencies?, factory)。require命令用于输入
+其他模块提供的功能。return命令用于规范模块的对外接口，define.amd属性是一个对象，此属性的存在来表明函数遵循AMD规范
+```
+//modell.js
+define(function() {
+    console.log('model1 entry');
+    return {
+        getHello: function() {
+            return 'model1';
+        }
+    }
+})
+
+//model2.js
+define(function() {
+    console.log('model2 entry');
+    return {
+        getHello: function() {
+            return 'model2';
+        }
+    }
+})
+
+//main.js
+define(function() {
+    var model1 = require('./model1.js');
+    console.log(model1.getHello());
+    var model2 = require('./model2.js');
+    console.log(mode2.getHello());
+})
+
+
+//加载mainJs
+<script src="https://cdn.bootcss.com/require.js/2.3.6/require.min.js"></script>
+<script>
+    requirejs(['main']);
+</script>
+```
+### CMD
+* 该规范的全称(Common Module Definition-通用模块定义)，该规范主要是Sea.js推广中形成，一个文件就是一个模块，可以像Node.js一般书写模块代码。主要用于浏览器中运行，当然可以在Node.js中运行。
+其与AMD很类似，不同点在于：AMD推崇依赖前置、提前执行，CMD推崇依赖就近、延迟执行
+```
+// model1.js
+define(function (require, exports, module) {
+    console.log('model1 entry');
+    exports.getHello = function () {
+        return 'model1';
+    }
+});
+// model2.js
+define(function (require, exports, module) {
+    console.log('model2 entry');
+    exports.getHello = function () {
+        return 'model2';
+    }
+});
+// main.js
+define(function(require, exports, module) {
+    var model1 = require('./model1'); //在需要时申明
+    console.log(model1.getHello());
+    var model2 = require('./model2'); //在需要时申明
+    console.log(model2.getHello());
+});
+<script src="https://cdn.bootcss.com/seajs/3.0.3/sea.js"></script>
+<script>
+    seajs.use('./main.js')
+</script>
+// 输出 
+// model1 entry
+// model1
+// model2 entry
+// model2
+```
+### UMD
+* 全称为(Universal Module Definition)通用模块定义，该模式主要用来解决CommonJS模式和AMD模式代码不能通用的问题，并同时还支持老式的全局变量规范。如下所示：
+```
+(function (global,factory) {
+    typeof exports === 'obeject' && typeof module !== 'undefined' ? module.exports = factory() : 
+    typeof define === 'function' && define.amd ? define(fatory) : 
+    (global = global || self , global.myBundle = factory());
+})(this, (function () {
+    'use strict';
+
+    var main = () => {
+        return 'hello world'
+    }
+
+    return main;
+}))
+
+<script src="bundle.js"></script>
+<script>
+  console.log(myBundle());
+</script>
+
+//1. define为函数，并且是否在define.amd, 来判断是否为AMD规范
+//2. 判断module是否为一个对象，并且是否存在module.exports来判断是否为CommonJS规范
+//3. 如果以上两种都没有，设定为原始的代码规范
+```
+
+### ES Modules
+* ES modules是js官方的标准化模块系统
+    1. 因为是标准，所以未来很多浏览器会支持，可以很方便的在浏览器中使用。(浏览器默加载不能省略.js)
+    2. 它同时兼容在node环境下运行
+    3. 模块的导入导出，通过import和export来确定。可以和Commonjs模块混合使用
+    4. ES modules输出的是值的引用，输出接口动态绑定，而CommonJS输出的是值的拷贝
+    5. ES modules模块编译时执行，而CommonJS模块总是在运行时加载
+```
+// index.js
+import { name, github } from './demo.js';
+
+console.log(name(), github());
+
+document.body.innerHTML = `<h1>${name()} ${github()}</h1>`
+export function name() {
+    return 'qiufeng';
+}
+
+export function github() {
+    return 'https://github.com/hua1995116';
+}
+<script src="./index.js" type="module"></script>
+```
