@@ -421,3 +421,429 @@ interface Process {
 
 declare let process: Process;
 ```
+
+### 接口
+* 接口的声明方式
+```
+interface Point {
+    x: number;
+    y: number;
+}
+```
+* 使用类实现接口，首先使用interface定义接口，之后使用implements关键字来确保兼容性,如下所示：
+```
+interface Point {
+    x: number;
+    y: number;
+}
+
+class Point  implements Point {
+    x: number;
+    y: number;
+}
+```
+* **并不是每一个接口都是很容易实现的**，接口旨在声明js中可能存在的任意结构，思考下面的demo
+```
+interface Crazy {
+    new(): {
+        hello: number;
+    }
+}
+
+class CrazyClass implements Crazy {
+    constructor() {
+        return {
+            hello: 123
+        }
+    }
+}
+```
+### 枚举
+* 组织收集有关联变量的一种方式，定义的方式是采用enum关键字，如下所示：
+```
+enum CardSuit  {
+    Clubs,
+    Diamonds,
+    Hearts,
+    Spades
+}
+
+```
+
+* 数字类型枚举和数字类型。数字类型枚举，允许将数字类型或者其他任何与数字类型兼容的类型赋值给枚举类型的实例
+
+* 数字类型枚举与字符串类型，从下面的例子中看出，你可以使用Tristate变量来把字符串枚举类型改造成一个数字或者是数字类型的枚举类型
+```
+enum Tristate {
+    False,
+    True,
+    Unkown
+}
+
+//被编译成js代码后
+var Tristate;
+(function(Tristate){
+    Tristate[(Tristate['False'] = 0)] = 'False';
+    Tristate[(Tristate['True'] = 1)] = 'True';
+    Tristate[(Tristate['Unkonw'] = 2)] = 'Unkonw';
+})(Tristate || (Tristate = {}));
+```
+* 改变与数字枚举关联的数字，默认情况下，第一个枚举值是0，然后每个后续值以此递增。也可以通过特定的赋值来改变给任何枚举成员关联的数字。可以将第一个枚举值设置为任意数值，后续会依次增加
+* 使用数字类型作为标志，枚举很好用途是用于作为标志。这些标志允许你检查一组条件中的某个条件是否为真。如下所示：
+```
+enum AnimalFlags {
+    None  = 0,
+    HasClaws = 1 << 0,
+    CanFly = 1 << 1,
+    EatsFish = 1 << 2,
+    Endangered = 1 << 3,
+}
+
+//在这里使用左移符号，将数字1的二进制向左移动位置得到数字0001，0010，0100， 1000
+```
+* 字符串枚举，枚举类型的值为字符串类型，如下所示：
+```
+export enum EvidenceTypeEnum {
+  UNKNOWN = '',
+  PASSPORT_VISA = 'passport_visa',
+  PASSPORT = 'passport',
+  SIGHTED_STUDENT_CARD = 'sighted_tertiary_edu_id',
+  SIGHTED_KEYPASS_CARD = 'sighted_keypass_card',
+  SIGHTED_PROOF_OF_AGE_CARD = 'sighted_proof_of_age_card'
+}
+```
+### lib.d.ts
+* 当你安装typescript时，会顺带安装一个lib.d.ts声明文件。这个文件包含js运行时以及DOM中存在各种常见的环境声明
+    * 自动包含在Typescript项目的编译上下文中；
+    * 它能让你快速开始书写经过类型检查的js代码；
+* 你可以指定 --noLib的编译命令行标志(或者在tsconfig.json中指定选项noLib: true)
+* 使用例子，如下所示
+```
+const foo = 123;
+const bar = foo.toString();
+
+//这段代码的类型检查正常，因为lib.d.ts为所有js对象定义了toString方法，如果在noLi选项下，使用相同的代码，这将会出现类型检查错误
+```
+
+* 观察lib.d.ts的内容，其主要是一些变量声明(如：window、document、math)和一些类似的接口声明(如：Window、Document、Math)，寻找代码类型(如：Math.floor)的最简单方式是使用IDE的F12（跳转定义），如下面的window接口定义
+```
+interface Window
+  extends EventTarget,
+    WindowTimers,
+    WindowSessionStorage,
+    WindowLocalStorage,
+    WindowConsole,
+    GlobalEventHandlers,
+    IDBEnvironment,
+    WindowBase64 {
+  animationStartTime: number;
+  applicationCache: ApplicationCache;
+  clientInformation: Navigator;
+  closed: boolean;
+  crypto: Crypto;
+  // so on and so forth...
+}
+```
+* 修改原始类型，在ts中，接口是开发式的，这意味着当你想使用不存在的成员时，只需将它们添加至lib.d.ts中的接口声明即可。TypeScript将会自动接收它。**注意当需要在全局模块中做这些修改，以使这些接口与lib.d.ts相关联。推荐创建一个global.d.ts的特殊文件**
+* Window，仅仅是添加至window接口：
+```
+interface Window {
+    helloword(): void;
+}
+
+//将允许你以类型安全的形式使用它
+window.helloWorld = () => console.log('hello world');
+
+// Call it
+window.helloWorld();
+
+// 滥用会导致错误
+window.helloWorld('gracius'); // Error: 提供的参数与目标不匹配
+```
+* 编译目标对lib.d.ts的影响，设置编译目标为es6时，能导致lib.d.ts包含更多像Promise现代内容的环境声明。
+* --lib选项，使用命令行的方式添加运行时的编译环境,如下所示：
+```
+tsc --target es5 --lib dom,es6
+```
+### 可调用的
+* 可以使用类型别名或者接口来表示一个可被调用的类型注解：
+```
+interface ReturnString {
+    (): string;
+}
+//可以表示一个返回值为string的函数：
+declare const foo: ReturnString;
+
+const bar = foo();
+```
+* 箭头函数，指定可调用的类型签名更容易，typescript运行你使用简单的简单函数类型注解，例如，在一个以number类型为参数，以string类型为返回值的函数中，写法如下：
+```
+const simple: (foo: number) => string = foo => foo.toString();
+```
+* 可实例化，仅仅是可调用的一种特殊情况，使用new作为前缀，如下所示：
+```
+interface CallMeWithNewToGetString {
+  new (): string;
+}
+
+// 使用
+declare const Foo: CallMeWithNewToGetString;
+const bar = new Foo(); // bar 被推断为 string 类型
+```
+### 类型断言
+* ts允许覆盖它的推断，并且能以你任何想要的方式分析它，这种机制被称为类型断言，ts类型断言用来告诉编译器你比他更了解这个类型，并且它不应该发生错误
+* 使用as foo来为类型断言
+* 类型断言与类型转化，类型转化通常意味桌某种运行时支持。但是类型断言纯粹是一个编译时语法，同时也是一种为编译器提供关于如何分析代码的方法
+* ts是怎样确定单个断言是否足够，当S类型是T类型的子集，或者T类型是S类型的子集时，s能够被断言成T
+
+### freshness
+* 为了能让检查对象字面量类型更容易，ts提供了freshness的概念(它也被称之为更严格的对象字面量检查)用来确保对象字面量在结构上类型兼容，如下所示：
+```
+function logName(something: { name: string }) {
+  console.log(something.name);
+}
+
+logName({ name: 'matt' }); // ok
+logName({ name: 'matt', job: 'being awesome' }); // Error: 对象字面量只能指定已知属性，`job` 属性在这里并不存在。
+```
+* 允许额外的属性，一个类型能够包含索引签名，以明确表明可以使用额外的属性，如下所示：
+```
+let: x :  { foo : number, [x: string]: any };
+x = { foo: 1, baz: 2 }
+```
+### 类型保护
+* typeof，判断一个变量的简单数据类型
+* instanceof，用来看两个对象之间是否具有继承关系
+* in用来判断一个对象上的属性是否具有可枚举性
+* 字面量类型保护，当在联合类型里使用字面量时，可以检查它们是否有区别：
+```
+type Foo = {
+  kind: 'foo'; // 字面量类型
+  foo: number;
+};
+
+type Bar = {
+  kind: 'bar'; // 字面量类型
+  bar: number;
+};
+
+function doStuff(arg: Foo | Bar) {
+  if (arg.kind === 'foo') {
+    console.log(arg.foo); // ok
+    console.log(arg.bar); // Error
+  } else {
+    // 一定是 Bar
+    console.log(arg.foo); // Error
+    console.log(arg.bar); // ok
+  }
+}
+```
+### 字符串字面量
+* 可以使用一个字符串字面量作为一个类型，如下所示：
+```
+let foo: 'Hello';
+```
+* 其本身并不实用，但是可以在一个联合类型中组合创建一个强大的（实用的）抽象，如下所示：
+```
+type CardinalDirection = 'North' | 'East' | 'South' | 'West';
+```
+* 其他字面量类型，如下所示：
+```
+type OneToFive = 1 | 2 | 3 | 4 | 5;
+type Bools = true | false;
+```
+### 类型推断
+* ts能够根据一些简单的规则推断(检查)变量的类型，如定义变量，函数返回类型，赋值，结构化，解构时。
+* noImplicitAny,选择noImplicitAny用来告诉编译器，当无法推断一个变量时发生一个错误(或者只能推断为一个隐士的any类型)，可以采用下面的这些方式：
+    * 通过显示的添加:any的类型注解，来让它成为一个any类型
+    * 通过一些更正确的类型注解来帮助TypeScript推断类型
+### 类型兼容性
+* 用于确定一个类型是否能赋值给其他类型，
+* 安全性，typescript类型系统设置比较方便，它允许你有一些不正确的行为。如任何类型都被赋值给any
+* 结构化，ts对象是一种结构类型，这意味桌只要结构匹配，名称也就无关紧要，如下所示：
+```
+interface Point {
+    x: number;
+    y: number;
+}
+
+class Point2D {
+    constructor(public x: number, public y: number) {}
+}
+
+let p: Point;
+//ok
+p = new Point2D(1, 2)
+```
+* 变体，对类型兼容性来说，变体是一个利于理解和重要的概念。对一个简单类型Base和Child来说，如果Child是Base的子类，Child的实例能被赋值给Base类型的变量，在由Base和Child组合的复杂类型的类型兼容性中，它取决于相同场景下Base与Child的体。
+    * 协变，只在同一个方向
+    * 逆变： 只在相反的方向
+    * 双向协变：包括同一个方向和不同方向
+    * 不变：如果类型不完全相同，则它们不完全兼容
+### Never
+* 程序语言的设计确实应该存在一个底部类型的概念，当你在分析代码流的时候，这会是一个理所当然存在的类型。ts就是这样一种分析代码流的语言，因此需要一个可靠的，代表永远不会发生的类型
+* never类型是ts中的底层类型，它自然被分配的一些例子：
+    * 一个从来不会有返回值的函数
+    * 一个总是会抛出错误的函数
+* 如下面的例子所示：
+```
+let foo: never = 123; // Error: number 类型不能赋值给 never 类型
+
+// ok, 作为函数返回类型的 never
+let bar: never = (() => {
+  throw new Error('Throw my hands in the air like I just dont care');
+})();
+
+```
+* 与void的差异，void表示没有任何类型，never表示永远不存在的值的类型
+### 辨析联合类型
+* 当类中含有字面量成员时，可以用该类的属性来辨析联合类型，如下所示：
+```
+interface Square {
+  kind: 'square';
+  size: number;
+}
+
+interface Rectangle {
+  kind: 'rectangle';
+  width: number;
+  height: number;
+}
+
+type Shape = Square | Rectangle;
+
+function area(s: Shape) {
+  if (s.kind === 'square') {
+    return s.size * s.size;
+  } else if (s.kind === 'rectangle') {
+    return s.width * s.height;
+  }
+
+  // 如果你能让 TypeScript 给你一个错误，这是不是很棒？
+}
+```
+* Switch语句，可以通过switch来实现以上例子
+```
+function area(s: Shape) {
+  switch (s.kind) {
+    case 'square':
+      return s.size * s.size;
+    case 'rectangle':
+      return s.width * s.height;
+    case 'circle':
+      return Math.PI * s.radius ** 2;
+    default:
+      const _exhaustiveCheck: never = s;
+  }
+}
+```
+### 索引签名
+* 可以用字符串访问js对象，用来保存对其他对象的引用，如下所示：
+* 声明一个索引签名，通过使用any来让Typescript允许可以做任意想做的事情，如下所示：   
+```
+const foo: {
+  [index: string]: { message: string };
+} = {};
+
+// 储存的东西必须符合结构
+// ok
+foo['a'] = { message: 'some message' };
+
+// Error, 必须包含 `message`
+foo['a'] = { messages: 'some message' };
+
+// 读取时，也会有类型检查
+// ok
+foo['a'].message;
+
+// Error: messages 不存在
+foo['a'].messages;
+```
+* 所有成员都必须符合字符串的索引签名，如下所示：
+```
+// ok
+interface Foo {
+  [key: string]: number;
+  x: number;
+  y: number;
+}
+
+// Error
+interface Bar {
+  [key: string]: number;
+  x: number;
+  y: string; // Error: y 属性必须为 number 类型
+}
+```
+* 使用一组有限的字符串字面量，一个索引签名可以通过映射类型来使索引字符串为联合类型中的一员，如下所示：
+```
+type Index = 'a' | 'b' | 'c';
+type FromIndex = { [k in Index]?: number };
+
+const good: FromIndex = { b: 1, c: 2 };
+
+// Error:
+// `{ b: 1, c: 2, d: 3 }` 不能分配给 'FromIndex'
+// 对象字面量只能指定已知类型，'d' 不存在 'FromIndex' 类型上
+const bad: FromIndex = { b: 1, c: 2, d: 3 };
+```
+* ts同时拥有string和number类型的索引签名，如下案例所示：
+```
+interface ArrStr {
+  [key: string]: string | number; // 必须包括所用成员类型
+  [index: number]: string; // 字符串索引类型的子级
+
+  // example
+  length: number;
+}
+```
+### 流动的类型
+* ts类型系统非常强大，他支持其他任何单一语言无法实现的类型流动和类型片段。关键的动机在于：当你改变其中一个时，其他相关的就自动更新，并且当有事情变糟糕时，你会得到一个友好的提示
+* 复制类型和值,当你想移动一个类时，你可能会想要做以下的事情：
+```
+class Foo {}
+const Bar = foo;
+let bar: Bar; //error： 不能找到名称'Bar',此时的Bar是一个变量不是类型
+```
+* 捕获变量的类型，通过typeof操作符在类型注解中使用变量，允许你告诉编译器，一个变量的类型与其他类型相同，如下所示：
+```
+let foo = 123;
+let bar: typeof foo
+```
+* 捕获类成员的类型，仅仅需要声明一个变量用来捕获到的类型，如下所示：
+```
+class Foo {
+    foo: number;
+}
+
+declare let _foo: Foo;
+
+//与之前做法相同
+let bar: typeof _foo.foo;
+```
+* 捕获键的名称，keyof操作符能让你捕获一个类型的键。例如，你可以使用它来捕获变量的键名称，再通过typeof来获取类型
+```
+const colors = {
+    red: 'red',
+    blue: 'blue'
+}
+
+type Colors = keyof typeof colors;
+
+let color: clors;
+```
+### 异常处理
+* js有一个Error类，用于处理异常。可以通过throw关键字来抛出一个错误。然后通过try/catch块来捕获此错误
+```
+try {
+    throw new Error('Something bad happened');
+} catch(e) {
+    console.log(e);
+}
+```
+* 错误子类型，除了内置的Error类外，还有一些额外的内置错误，继承自Error类
+    * RangeError,当数字类型变量或者参数超出其有效范围时，出现RangeError
+    * ReferenceError,当引用无效时，会出现ReferenceError
+    * SyntaxError,当解析无效js代码时，会出现SyntaxError的错误提示
+    * TypeError: 变量或者参数不是有效类型时，会出现typeError的错误提示
+    * URLError: 当传入无效参数至encodeURI()和decodeURI()时，会出现URLError的错误提示：
