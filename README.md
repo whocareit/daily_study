@@ -10,3 +10,10 @@
 
 ## deep_ts
 * 该文件夹中的内容主要是深入理解ts中的一些内容
+
+## html_css
+* 该部分包含html以及css中的一些用法
+
+
+## js_design_pattern
+* 介绍有关于js设计模式的内容，怎样在js中去实现这种模式
