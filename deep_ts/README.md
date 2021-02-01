@@ -114,4 +114,82 @@ const bar = foo;
 ### 文件模块详情
 * 文件模块拥有强大的功能和较强的可用性
 #### commonjs、 amd 、 es modules 、 others
-* 首先需要明白这些模块系统的不一致性。
+* 首先需要明白关于这些模块系统的不一致性。需要根据不同的module选项来把TypeScript编译成不同的js模块类型。
+* 如何书写TypeScript模块
+    * 放弃使用import/require语法即import foo = require('foo')写法
+    * 推荐使用ES模块语法
+* ES5模块语法
+    * 使用export关键字导出一个变量或类型
+    ```
+        export const someVar = 123;
+        export type someType = {
+            foo: stringl
+        }
+    ```
+    * export的写法除了上述的写法，还有下面这种
+    ```
+        const someVar = 123;
+        type someType = {
+            type: string;
+        }
+        export { someVar someType }
+    ```
+    * 采用重命名变量的方式导出
+    ```
+        const someVar = 123;
+        export { someVar as aDifferentName };
+    ```
+    * 使用import关键字导入一个变量或者是一个类型
+    ```
+        import { someVar, someType } from './foo';
+    ```
+    * 通过重命令的方式导入变量或者类型：
+    ```
+        import { someVar as aDifferentName } from './foo';
+    ```
+    * 除了指定加载某个输出值，还可以使用整体加载，即用星号(*)指定一个对象，所有输出都加载在这个对象上面
+    ```
+        import * as foo from './foo';
+        //此时可以使用'foo.someVar'和‘foo.someType’以及其他任何从‘foo'到处的变量或者类型
+    ```
+    * 只导入模块
+    ```
+        import 'core-js';
+    ```
+    * 从其他模块导入后，整体导出
+    ```
+        export * from './foo';
+    ```
+    * 从其他模块导入后，部分导出：
+    ```
+        export { someVar } from './foo';
+    ```
+    * 通过重命名，部分导出从另一个模块导入的项目：
+    ```
+        export { someVar as aDifferentName } from './foo';
+    ```
+* 默认导入/导出
+    * 使用export default
+        * 在一个变量之前
+        * 在一个函数之前
+        * 在一个类之前
+    * 导入使用import someName from 'someModule'的语法
+
+* 模块路径，存在两种截然不同的模块：
+    * 相对模块路径，通过路径的方式来查找
+    * 其他动态查找模块：(如： core-js, typestyle, react或者是react/core)
+* 相对模块路径
+    * 如果文件 bar.ts 中含有 import * as foo from './foo'，那么 foo 文件必须与 bar.ts 文件存在于相同的文件夹下
+    * 如果文件 bar.ts 中含有 import * as foo from '../foo'，那么 foo 文件所存在的地方必须是 bar.ts 的上一级目录；
+    * 如果文件 bar.ts 中含有 import * as foo from '../someFolder/foo'，那么 foo 文件所在的文件夹 someFolder 必须与 bar.ts 文件所在文件夹在相同的目录下。
+* 动态查找，当导入路径不是相对路径时，模块解析将会模仿Node模块解析器，如：
+    * 当使用import * as foo from 'foo',将会按照如下的顺序查找模块：
+        * ./node_modules/foo
+        * ../node_modules/foo
+        * ../../node_modules/foo
+        * 直到根目录
+    * 当使用import * as foo from 'something/foo',将会按照下面的这种方式去查询
+        * ./node_modules/something/foo
+        * ../node_modules/something/foo
+        * ../../node_modules/something/foo
+        * 直到根目录
