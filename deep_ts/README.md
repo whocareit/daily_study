@@ -193,3 +193,106 @@ const bar = foo;
         * ../node_modules/something/foo
         * ../../node_modules/something/foo
         * 直到根目录
+* 重写类型的动态查找
+    * 在项目中，可以通过declare module 'somePath' 声明一个全局模块的方式，来解决查找模块路径的问题，如下所示：
+    ```
+        declare module  'foo' {
+            export var bar: number;
+        }
+    ```
+    * 接着引入该模块的内容
+    ```
+        import * as foo from 'foo';
+    ```
+* import/require仅仅是导入类型，如下所示
+```
+import foo = require('foo');
+```
+* 实际上，上面的语法表达两层含义：
+    * 导入foo模块的所有类型信息
+    * 确定foo模块运行时的依赖关系
+* 使用例子：懒加载
+    * 类型推断需要提前完成，这就意味着，如果想要在bar文件里，使用从其他文件foo导出的类型，将采用下面的方式来处理：
+    ```
+        import foo = require('foo');
+        let bar: foo.someType;
+    ```
+    * 在某些场景下，只想在需要加载模块foo，此时需要尽在类型注解中使用导入的模块名称，而不是在变量中使用。在编译js时，这些将被移除，接着需要手动导入需要的模块,如下所示：
+    ```
+        import foo = require('foo');
+
+        export function loadFoo() {
+            //懒加载foo，原始的加载仅仅用来做类型注解
+            const _foo: tyoeof foo = require('foo');
+        }
+    ```
+    ```
+        import foo = require('foo');
+        export function loadFoo() {
+            require(['foo'], (_foo: typeof foo) => {
+                //使用'_foo'替代'foo'来作为变量使用
+            })
+        }
+    ```
+    * 上述的这些场景通常在以下的情况使用：
+        * 在web app中，当在特定路由上加载js时
+        * 在node应用中，只想加载特定模块，用来加快启动速度
+    * 使用例子：打破循环依赖
+        * 类似于懒加载的使用用例，某些模块加载器(commonjs/node和amd/requires)不能很好的处理循环依赖。在这种情况下，一方面使用延迟加载代码，另一方面预先加载模块
+    * 使用例子：确保输入
+        * 当加载一个模块，只想引入其附加作用时，如果仅仅是import/require(导入)一些并没有与你的模块或者模块家在器有任何依赖的js代码，在经过ts编译后，这些将会被完全忽视。在这种情况下，可以使用一个ensureImport变量，来确保编译的js依赖与模块。如下所示：
+        ```
+            import foo = require('./foo');
+            import bar = require('./bar');
+            import bas = require('./bas');
+
+            const ensureImport: any = foo || bar || bas
+        ```
+* global.d.ts
+    * 该文件，用来将一些接口或者类型放在全局命名空间里，这些定义的接口和类型能在你的所有ts代码里使用
+## 命名空间
+* 在使用js时常用的命名空间的方式，是采用立即执行函数方式，如下所示：
+    ```
+    (function(something) {
+        smoething.foo = 123;
+    })(something || (something = {} ))
+    ```
+    * 在上面的实例中something || (something = {}) 允许匿名函数function (something) {} 向现有对象添加内容，或者创建一个新对象，然后向该对象添加内容。
+    ```
+    let something;
+
+    (function(something) {
+        something.foo = 123;
+    })(something || (something = {}));
+    
+    console.log(something);
+    // { foo: 123 }
+    
+    (function(something) {
+        something.bar = 456;
+    })(something || (something = {}));
+    
+    console.log(something); // { foo: 123, bar: 456 }
+    ```
+    * 在确保创建的变量不会泄露至全局命名空间时，这种方式在js中很常见，当基于文件模块使用时，无须担心这点，该模式仍然适用于一组函数的逻辑分组。因此在ts中提供了namespace关键字来描述这种分组，如下所示：
+    ```
+        namespace Utility {
+            export function log(msg) {
+                console.log(msg);
+            }
+
+            export function error(msg) {
+                console.log(msg);
+            }
+        }
+
+        //usage
+        Utility.log('Call me');
+        Utility.log('maybe');
+    ```
+    * ts经过编译后js代码如下所示：
+    ```
+        (function(Utility){
+            //....
+        })(Utility || (Utility = {}))
+    ```
