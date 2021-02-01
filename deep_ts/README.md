@@ -848,4 +848,4 @@ try {
     * TypeError: 变量或者参数不是有效类型时，会出现typeError的错误提示
     * URLError: 当传入无效参数至encodeURI()和decodeURI()时，会出现URLError的错误提示：
 ## TypeScript编译原理
-* (https://jkchao.github.io/typescript-book-chinese/compiler/overview.html#%E6%96%87%E4%BB%B6%EF%BC%9Autilities)[https://jkchao.github.io/typescript-book-chinese/compiler/overview.html#%E6%96%87%E4%BB%B6%EF%BC%9Autilities]
+* https://jkchao.github.io/typescript-book-chinese/compiler/overview.html#%E6%96%87%E4%BB%B6%EF%BC%9Autilities
