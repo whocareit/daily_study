@@ -100,7 +100,7 @@
     const someVar = Foo;
     const someOthervar = 123;
     ```
-## 模块
+### 模块
 * 全局模块，在默认情况下，当开始在一个新的TypeScript文件中写下代码时，其处于全局命名空间中。这种方式容易造成文件内的代码命名冲突。推荐使用文件模块
 * 文件模块，又被称之为外部模块。如果在ts文件的根级别位置含有import或者export，那么它会在这个文件中创建一个本地的作用域，如下所示：
 ```
@@ -111,7 +111,7 @@ export const foo = 123;
 import { foo } from './foo';
 const bar = foo;
 ```
-### 文件模块详情
+#### 文件模块详情
 * 文件模块拥有强大的功能和较强的可用性
 #### commonjs、 amd 、 es modules 、 others
 * 首先需要明白关于这些模块系统的不一致性。需要根据不同的module选项来把TypeScript编译成不同的js模块类型。
@@ -250,7 +250,7 @@ import foo = require('foo');
         ```
 * global.d.ts
     * 该文件，用来将一些接口或者类型放在全局命名空间里，这些定义的接口和类型能在你的所有ts代码里使用
-## 命名空间
+### 命名空间
 * 在使用js时常用的命名空间的方式，是采用立即执行函数方式，如下所示：
     ```
     (function(something) {
@@ -296,3 +296,128 @@ import foo = require('foo');
             //....
         })(Utility || (Utility = {}))
     ```
+### 动态导入表达式
+* 其是es的一个新功能，允许你在程序的任意位置异步加载一个模块，TC39js委员会有一个提按，目前正处于第四阶段，它被称之为import () proposal for JavaScript
+* 此外webpack bundle有一个Code Splitting 功能，它允许你将代码块拆分为多个许多块，这些块在将来可被异步下载。因此，可以在程序中首先提供一个最小的程序启动包，并在将在异步加载其他模块
+* webpack实现代码分割的方式有两种：使用import() 和 require.ensure()（最后考虑，webpack具体实现）。因此期望ts的输出是保留import语句，而不是将其转化为其他任何代码
+* 在下面的这个例子中，演示了如何配置webpack和TypeScript2.4+,如下所示：
+```
+//webpack加载方式
+import(/* webpackChunkName: "momentjs" */ 'moment')
+    .then(moment => {
+        //懒加载的模块拥有所有类型，并且能按期工作
+        //类型检查会工作，代码引用也会工作 ：100:
+        const time = moment().format();
+        console.log('Typescript >= 2.4.0 Dynamic Import Expression:');
+        console.log(time);
+    })
+    .catch(err => console.log("Failed to load moment",err))
+
+
+
+//tsconfig.json配置文件
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "esnext",
+        "lib": [
+        "dom",
+        "es5",
+        "scripthost",
+        "es2015.promise"
+        ],
+        "jsx": "react",
+        "declaration": false,
+        "sourceMap": true,
+        "outDir": "./dist/js",
+        "strict": true,
+        "moduleResolution": "node",
+        "typeRoots": [
+        "./node_modules/@types"
+        ],
+        "types": [
+        "node",
+        "react",
+        "react-dom"
+        ]
+    }
+}
+```
+
+## Typescript类型系统
+* ts类型系统的主要功能，以下为一些关键点
+    * ts类型系统被设计为可选的
+    * ts不会阻止js的运行，即使存在类型错误也不例外，这能让js逐步迁移至ts
+    * ts中的一些数据类型
+
+### 从js中迁移至ts包括以下步骤
+* 从js迁移到ts的步骤如下：
+    * 添加一个tsconfig.json文件
+    * 把文件扩展名.js改为.ts，开始使用any来减少错误
+    * 开始在ts中写代码，尽可能的减少any的使用
+    * 回到旧代码，开始添加类型注解，并修复已识别的错误
+    * 为第三方js代码定义环境声明
+* 减少错误，代码迁移至ts后，ts将立即对代码进行类型检查，此时可以采用any来解决大部分的报错问题
+* 第三方代码，可以将js代码改成ts代码，但是不能全部都使用ts代码，这正是ts环境声明支持的地方，可以专门使用一个文件作为开始，然后向文件里添加东西。或者可以创建一个针对于特定库的声明文件
+* 第三方的npm模块，与全局变量声明类似，可以快速定义一个全局模块，如jq，如果你想把它作为一个模块来使用时，可以自己通过以下的方式来实现：
+```
+declare module 'jquery';
+
+import * as $ from 'jquery';
+```
+* 额外的非js资源，在ts中，甚至可以允许导入任何文件，例如.css文件(如果使用webpack样式加载器或css模块)，只需要添加如下代码(放在global.d.ts)：
+```
+declare module '*.css';
+// 声明之后可以使用import * as foo from './some/file.css'
+```
+
+### @types
+* 使用types，可以通过npm来安装使用@types，例如：jquery添加声明文件，如下所示
+```
+npm install @types/jquery
+```
+* @types支持全局和模块类型定义
+    * 全局@types，默认情况下，typescript会自动包含支持全局使用的任何声明定义。例如，对于jq，你应该能够在全局使用$符号
+    * 模块@types,安装完成之后，不需要特别的配置，就可以像模块一样使用它
+    ```
+        import * as $ from 'jquery';
+    ```
+* 控制全局，对于一些团队而言，拥有允许全局使用的定义是一个问题。因此可以通过配置tsconfig.json的compilerOptions.types选择，引入有意义的类型，如下所示:
+```
+    {
+        "compilerOptions": {
+            "types": [
+                "jquery"
+            ]
+        }
+    }
+```
+
+### 环境声明
+* 环境声明允许你安全的使用现有的js库，并且能让你的js，CoffeeScript或者其他需要编译成js的语言逐步迁移至Typescript中
+* 声明文件，可以通过declare关键字来告诉typescript，你正在试图表述一个其他地方已经存在的代码。如：写在js CoffeeScript或者是像浏览器和Node.js运行环境里的代码，如下所示：
+```
+foo = 123;
+
+
+declare var foo: any;
+foo = 123;
+```
+* 你可以选择把这些声明放在.ts或者.d.ts里，在实际项目里，强烈建议你应该把声明放在独立的.d.ts里。如果一个文件有扩展名.d.ts，这意味着每个根级别的声明都必须以declare关键字作为前缀。这有利于让开发者清楚知道，
+在这里ts将不会把它编译成任何代码，同时开发者需要确保这些在编译时存在
+
+* 变量，当想告诉ts编译器关于process变量时，可以采用下面的这种方式
+```
+declare let process: any';
+
+//允许你使用process，并能成功通过typescript的编译：
+process.exit();
+
+
+//推荐尽可能的使用接口，例如：
+interface Process {
+    exit(code?: number): void;
+}
+
+declare let process: Process;
+```
