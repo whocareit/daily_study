@@ -525,3 +525,410 @@
 // eventTrigger['incrementRedo'](); // 无输出
 
 // eventTrigger['increment'](); // 6
+
+
+//组合模式
+// function Folder(name) {
+//     this.name = name;
+//     this.parent = null;
+//     this.files = [];
+// }
+
+// Folder.prototype = {
+//     constructor: Folder,
+
+//     add: function(file) {
+//         file.parent = this;
+//         this.files.push(file);
+
+//         return this;
+//     },
+
+//     scan: function() {
+//         // 委托给叶对象处理
+//         for (var i = 0; i < this.files.length; ++i) {
+//             this.files[i].scan();
+//         }
+//     },
+
+//     remove: function(file) {
+//         if (typeof file === 'undefined') {
+//             this.files = [];
+//             return;
+//         }
+
+//         for (var i = 0; i < this.files.length; ++i) {
+//             if (this.files[i] === file) {
+//                 this.files.splice(i, 1);
+//             }
+//         }
+//     }
+// };
+
+
+// // 文件 叶对象
+// function File(name) {
+//     this.name = name;
+//     this.parent = null;
+// }
+
+// File.prototype = {
+//     constructor: File,
+
+//     add: function() {
+//         console.log('文件里面不能添加文件');
+//     },
+
+//     scan: function() {
+//         var name = [this.name];
+//         var parent = this.parent;
+
+//         while (parent) {
+//             name.unshift(parent.name);
+//             parent = parent.parent;
+//         }
+
+//         console.log(name.join(' / '));
+//     }
+// };
+
+// var web = new Folder('Web');
+// var fe = new Folder('前端');
+// var css = new Folder('CSS');
+// var js = new Folder('js');
+// var rd = new Folder('后端');
+
+// web.add(fe).add(rd);
+
+// var file1 = new File('HTML权威指南.pdf');
+// var file2 = new File('CSS权威指南.pdf');
+// var file3 = new File('JavaScript权威指南.pdf');
+// var file4 = new File('MySQL基础.pdf');
+// var file5 = new File('Web安全.pdf');
+// var file6 = new File('Linux菜鸟.pdf');
+
+// css.add(file2);
+// fe.add(file1).add(file3).add(css).add(js);
+// rd.add(file4).add(file5);
+// web.add(file6);
+
+// rd.remove(file4);
+
+// // 扫描
+// web.scan();
+
+//模版方法模式
+// function Sport() {}
+
+// Sport.prototype = {
+//     constructor: Sport,
+    
+//     init: function() {
+//         this.stretch();
+//         this.jog();
+//         this.deepBreath();
+//         this.start();
+
+//         var free = this.end();
+
+//         if (free !== false) {
+//             this.stretch();
+//         }
+//     },
+
+//     stretch: function() {
+//         console.log('拉伸');
+//     },
+
+//     jog: function() {
+//         console.log('慢跑');
+//     },
+
+//     deepBreath: function() {
+//         console.log('深呼吸');
+//     },
+
+//     start: function() {
+//         console.log('开始');
+//     },
+
+//     end: function() {
+//         console.log('结束运动');
+//     }
+// }
+
+// function Basketball() {
+
+// }
+
+// Basketball.prototype = new Sport();
+
+// //重写相关方法
+// Basketball.prototype.start = function() {
+//     console.log('先投三分');
+// }
+
+// Basketball.prototype.end = function() {
+//     console.log('sports end');
+// }
+
+// const basketball = new Basketball();
+// basketball.init();
+
+// function ChainItem(fn) {
+//     this.fn = fn;
+//     this.next = null;
+// }
+
+// ChainItem.prototype = {
+//     constructor: ChainItem,
+
+//     //设置下一项
+//     setNext: function(next) {
+//         this.next = next;
+//         return next;
+//     },
+
+//     //开始执行
+//     start: function() {
+//         this.fn.apply(this, arguments);
+//     },
+
+//     //转到链的下一项执行
+//     toNext: function() {
+//         if (this.next) {
+//             this.start.apply(this.next, arguments);
+//         } else {
+//             console.log('无匹配的执行项目');
+//         }
+//     }
+// }
+
+// //展示数字
+// function showNumber(num) {
+//     if (typeof num === 'number') {
+//         console.log('number', num);
+//     } else {
+//         this.toNext(num);
+//     }
+// }
+
+// // 展示字符串
+// function showString(str) {
+//     if (typeof str === 'string') {
+//         console.log('string', str);
+//     } else {
+//         this.toNext(str);
+//     }
+// }
+
+// // 展示对象
+// function showObject(obj) {
+//     if (typeof obj === 'object') {
+//         console.log('object', obj);
+//     } else {
+//         this.toNext(obj);
+//     }
+// }
+
+// var chainNumber = new ChainItem(showNumber);
+// var chainString = new ChainItem(showString);
+// var chainObject = new ChainItem(showObject);
+
+// // 设置链条
+// chainObject.setNext(chainNumber).setNext(chainString);
+
+// chainString.start('12'); // string 12
+// chainNumber.start({}); // 无匹配的执行项目
+// chainObject.start({}); // object {}
+// chainObject.start(123); // number 123
+
+// var A = {
+//     score: 10,
+
+//     changeTo: function(score) {
+//         this.score = score;
+
+//         this.getRank();
+//     },
+
+//     getRank: function() {
+//         var scores = [this.score, B.score, C.score].sort(function(a, b) {
+//             return a < b;
+//         })
+
+//         console.log(scores.indexOf(this.score) + 1);
+//     }
+
+// }
+
+// var B = {
+//     score: 20,
+
+//     changeTo: function(score) {
+//         this.score = score;
+
+//         // 通过中介者获取
+//         rankMediator(B);
+//     }
+// };
+
+// var C = {
+//     score: 30,
+
+//     changeTo: function(score) {
+//         this.score = score;
+
+//         rankMediator(C);
+//     }
+// };
+
+// //中介者，计算排名
+// function rankMediator(person) {
+//     var scores = [A.score, B.score, C.score].sort(function(a, b) {
+//         return a < b;
+//     });
+
+//     console.log(scores.indexOf(person.score) + 1);
+// }
+
+// // A通过自身来处理
+// A.changeTo(100); // 1
+
+// // B和C交由中介者处理
+// B.changeTo(200); // 2
+// C.changeTo(50); // 3
+
+// // 工作状态
+// function Work(name) {
+//     this.name = name;
+//     this.currentState = null;
+
+//     // 工作状态，保存为对应状态对象
+//     this.wakeUpState = new WakeUpState(this);
+//     // 精神饱满
+//     this.energeticState = new EnergeticState(this);
+//     // 疲倦
+//     this.tiredState = new TiredState(this);
+
+//     this.init();
+// }
+
+// Work.prototype.init = function() {
+//     this.currentState = this.wakeUpState;
+    
+//     // 点击事件，用于触发更新状态
+//     document.body.onclick = () => {
+//         this.currentState.behaviour();
+//     };
+// };
+
+// // 更新工作状态
+// Work.prototype.setState = function(state) {
+//     this.currentState = state;
+// }
+
+// // 刚醒
+// function WakeUpState(work) {
+//     this.work = work;
+// }
+
+// // 刚醒的行为
+// WakeUpState.prototype.behaviour = function() {
+//     console.log(this.work.name, ':', '刚醒呢，睡个懒觉先');
+    
+//     // 只睡了2秒钟懒觉就精神了..
+//     setTimeout(() => {
+//         this.work.setState(this.work.energeticState);
+//     }, 2 * 1000);
+// }
+
+// // 精神饱满
+// function EnergeticState(work) {
+//     this.work = work;
+// }
+
+// EnergeticState.prototype.behaviour = function() {
+//     console.log(this.work.name, ':', '超级精神的');
+    
+//     // 才精神1秒钟就发困了
+//     setTimeout(() => {
+//         this.work.setState(this.work.tiredState);
+//     }, 1000);
+// };
+
+// // 疲倦
+// function TiredState(work) {
+//     this.work = work;
+// }
+
+// TiredState.prototype.behaviour = function() {
+//     console.log(this.work.name, ':', '怎么肥事，好困');
+    
+//     // 不知不觉，又变成了刚醒着的状态... 不断循环呀
+//     setTimeout(() => {
+//         this.work.setState(this.work.wakeUpState);
+//     }, 1000);
+// };
+
+
+// var work = new Work('曹操');
+
+// //渲染数据，格式限制为数组
+// function renderData(data) {
+//     data.forEach(function(item) {
+//         console.log(item);
+//     });
+// }
+
+// //对非数组的进行转化适配
+// function arrayAdapter(data) {
+//     if (typeof data !== 'object') {
+//         return [];
+//     }
+
+//     if (Object.prototype.toString.call(data) === '[object Array]') {
+//         return data;
+//     }
+
+//     var temp = [];
+//     for (var item in data) {
+//         if (data.hasOwnProperty(item)) {
+//             temp.push(data[item]);
+//         }
+//     }
+//     return temp;
+// }
+// var data = {
+//     0: 'A',
+//     1: 'B',
+//     2: 'C'
+// };
+
+// renderData(arrayAdapter(data)); // A B C
+
+function start() {
+    console.log('start');
+}
+
+function doing() {
+    console.log('doing');
+}
+
+function end() {
+    console.log('end');
+}
+
+//外观函数
+function execute() {
+    start();
+    doing();
+    end();
+}
+
+//调用init开始执行
+function init() {
+    execute();
+}
+
+init();

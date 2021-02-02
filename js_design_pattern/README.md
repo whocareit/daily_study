@@ -515,3 +515,466 @@ eventTrigger['incrementRedo'](); // 无输出
 
 eventTrigger['increment'](); // 6
 ```
+## 组合模式
+* 含义：用小的自对象来构建更大的对象，而这些小的子对象本身也许是由更小的“孙对象”构成的
+* 核心：调用组合对象的execute方法，将部分合成一个整体，但是需要注意的是**组合模式不是父子关系，是由一种HAS-A的关系，将请求委托给它所包含的所有叶对象。基于这种委托，就需要保证组合对象和叶对象拥有相同的接口**此外，也需要保证用一致的方式对待列表中的每个对象，即叶对象属于同一类，不需要过多特殊的额外操作
+* 优点：可以方便地构造一棵树来表示对象的部分-整体 结构。在树的构造最终完成之后，只需要通过请求树的最顶层对象，便能对整课树做统一一致的操作。缺点：创建出来的对象长得都差不多，可能会使得代码不好理解，创建太多的对象对性能也会有一些影响
+* 实现案例如下所示：
+```
+function Folder(name) {
+    this.name = name;
+    this.parent = null;
+    this.files = [];
+}
+
+Folder.prototype = {
+    constructor: Folder,
+
+    add: function(file) {
+        file.parent = this;
+        this.files.push(file);
+
+        return this;
+    },
+
+    scan: function() {
+        // 委托给叶对象处理
+        for (var i = 0; i < this.files.length; ++i) {
+            this.files[i].scan();
+        }
+    },
+
+    remove: function(file) {
+        if (typeof file === 'undefined') {
+            this.files = [];
+            return;
+        }
+
+        for (var i = 0; i < this.files.length; ++i) {
+            if (this.files[i] === file) {
+                this.files.splice(i, 1);
+            }
+        }
+    }
+};
+
+
+// 文件 叶对象
+function File(name) {
+    this.name = name;
+    this.parent = null;
+}
+
+File.prototype = {
+    constructor: File,
+
+    add: function() {
+        console.log('文件里面不能添加文件');
+    },
+
+    scan: function() {
+        var name = [this.name];
+        var parent = this.parent;
+
+        while (parent) {
+            name.unshift(parent.name);
+            parent = parent.parent;
+        }
+
+        console.log(name.join(' / '));
+    }
+};
+
+var web = new Folder('Web');
+var fe = new Folder('前端');
+var css = new Folder('CSS');
+var js = new Folder('js');
+var rd = new Folder('后端');
+
+web.add(fe).add(rd);
+
+var file1 = new File('HTML权威指南.pdf');
+var file2 = new File('CSS权威指南.pdf');
+var file3 = new File('JavaScript权威指南.pdf');
+var file4 = new File('MySQL基础.pdf');
+var file5 = new File('Web安全.pdf');
+var file6 = new File('Linux菜鸟.pdf');
+
+css.add(file2);
+fe.add(file1).add(file3).add(css).add(js);
+rd.add(file4).add(file5);
+web.add(file6);
+
+rd.remove(file4);
+
+// 扫描
+web.scan();
+```
+
+## 模版方法模式
+* 含有：模版方法模式由两部分结构组成，第一部分是抽象父类，第二部分是具体的实现子类
+* 核心： 在抽象父类中封装子类的算法框架，它的init方法可作为一个算法的模版，指导子类以何种顺序去执行哪些方法。由父类分离出公共部分，要求子类重写某些父类的（易变化的）抽象方法
+* 实现：该模版方法模式一般的实现方式为继承，如下所示：
+```
+function Sport() {}
+
+Sport.prototype = {
+    constructor: Sport,
+    
+    init: function() {
+        this.stretch();
+        this.jog();
+        this.deepBreath();
+        this.start();
+
+        var free = this.end();
+
+        if (free !== false) {
+            this.stretch();
+        }
+    },
+
+    stretch: function() {
+        console.log('拉伸');
+    },
+
+    jog: function() {
+        console.log('慢跑');
+    },
+
+    deepBreath: function() {
+        console.log('深呼吸');
+    },
+
+    start: function() {
+        console.log('开始');
+    },
+
+    end: function() {
+        console.log('结束运动');
+    }
+}
+
+function Basketball() {
+
+}
+
+Basketball.prototype = new Sport();
+
+//重写相关方法
+Basketball.prototype.start = function() {
+    console.log('先投三分');
+}
+
+Basketball.prototype.end = function() {
+    console.log('sports end');
+}
+
+const basketball = new Basketball();
+basketball.init();
+```
+
+## 享元模式
+* 含义：享元模式是一种用于性能优化的模式，它的目标是尽量减少共享对象的数量
+* 核心：1. 运用共享技术来有效支持dealing细粒度的对象； 2. 强调将对象的属性划分为内部状态(属性)和外部状态(属性)。内部状态用于对象的共享，通常是不变的；而外部状态则剥离开来，由具体的场景决定
+* 使用场景：在程序中使用了大量的相似对象时，可以利用享元模式来优化，减少对象的数量。
+
+## 职责链模式
+* 含义：使多个对象都有机会处理请求，从而避免请求的发送者和接收者之间的耦合关系，将这些对象连成一条链，并沿着这条链传递该请求，直到有一个对象处理它为止。
+* 核心：请求发送者只需要知道链中的第一个节点，弱化发送者和一组接收者之间的强联系，可以便捷地在职责链中增加或删除一个节点，同样地，指定谁是第一个节点也是很便捷的
+* 实现：以展示不同类型的变量为例，设置一条职责链，可以免去多重if条件分支
+```
+function ChainItem(fn) {
+    this.fn = fn;
+    this.next = null;
+}
+
+ChainItem.prototype = {
+    constructor: ChainItem,
+
+    //设置下一项
+    setNext: function(next) {
+        this.next = next;
+        return next;
+    },
+
+    //开始执行
+    start: function() {
+        this.fn.apply(this, arguments);
+    },
+
+    //转到链的下一项执行
+    toNext: function() {
+        if (this.next) {
+            this.start.apply(this.next, arguments);
+        } else {
+            console.log('无匹配的执行项目');
+        }
+    }
+}
+
+//展示数字
+function showNumber(num) {
+    if (typeof num === 'number') {
+        console.log('number', num);
+    } else {
+        this.toNext(num);
+    }
+}
+
+// 展示字符串
+function showString(str) {
+    if (typeof str === 'string') {
+        console.log('string', str);
+    } else {
+        this.toNext(str);
+    }
+}
+
+// 展示对象
+function showObject(obj) {
+    if (typeof obj === 'object') {
+        console.log('object', obj);
+    } else {
+        this.toNext(obj);
+    }
+}
+
+var chainNumber = new ChainItem(showNumber);
+var chainString = new ChainItem(showString);
+var chainObject = new ChainItem(showObject);
+
+// 设置链条
+chainObject.setNext(chainNumber).setNext(chainString);
+
+chainString.start('12'); // string 12
+chainNumber.start({}); // 无匹配的执行项目
+chainObject.start({}); // object {}
+chainObject.start(123); // number 123
+```
+
+## 中介者模式
+* 含义：所有相关对象都通过中介者对象来通信，而不是互相引用，所以当一个对象发生改变时，只需要通知中介者对象即可
+* 核心：使网状的多对多关系变成了相对简单的一对多关系(复杂的调度处理都交给中介者)
+* 实现：多个对象，指的不一定得是实例化对象，也可以理解成互相独立的多个项。当这些项在处理时，需要知晓并通知其他项的数据来处理。如果每个项都直接处理，程序会非常复杂，修改某个地方就得在多个项内部修改。将这个处理过程抽离出来，封装中介者即可。如下所示：
+```
+var A = {
+    score: 10,
+
+    changeTo: function(score) {
+        this.score = score;
+
+        this.getRank();
+    },
+
+    getRank: function() {
+        var scores = [this.score, B.score, C.score].sort(function(a, b) {
+            return a < b;
+        })
+
+        console.log(scores.indexOf(this.score) + 1);
+    }
+
+}
+
+var B = {
+    score: 20,
+
+    changeTo: function(score) {
+        this.score = score;
+
+        // 通过中介者获取
+        rankMediator(B);
+    }
+};
+
+var C = {
+    score: 30,
+
+    changeTo: function(score) {
+        this.score = score;
+
+        rankMediator(C);
+    }
+};
+
+//中介者，计算排名
+function rankMediator(person) {
+    var scores = [A.score, B.score, C.score].sort(function(a, b) {
+        return a < b;
+    });
+
+    console.log(scores.indexOf(person.score) + 1);
+}
+
+// A通过自身来处理
+A.changeTo(100); // 1
+
+// B和C交由中介者处理
+B.changeTo(200); // 2
+C.changeTo(50); // 3
+```
+## 装饰者模式
+* 含义：以动态地给某个对象添加一些额外的职责，而不会影响从这个类中派生的其他对象，是一种即用即付的方式，能够在不改变对象自身的基础上，在程序运行期间给对象动态的添加职责。
+* 核心：为对象动态的加入行为，经过多重包装，可以形成一条装饰链
+* 实际案例：
+```
+var A = {
+    score: 10
+};
+
+A.score = '分数：' + A.score;
+```
+
+## 状态模式
+* 含义：事物内部状态改变往往会带来事物行为改变。在处理的时候，将这个处理委托给当前的状态对象即可，该状态对象会负责渲染它自身的行为
+* 核心：区分事物内部的状态，把事物的每种状态都封装成单独的类，跟此种状态有关的行为都被封装在这个类的内部
+* 优点：状态切换的逻辑分布在状态类中，易于维护。缺点：多个状态类，对于性能来说也是一个缺点，这个缺点可以使用享元模式来做进一步优化，将逻辑分散在状态类中，可能不会很轻易的就能看出状态机的变化逻辑
+* 实现：以一个人的工作状态，刚醒、精神、疲惫几个状态切换着
+```
+
+// 工作状态
+function Work(name) {
+    this.name = name;
+    this.currentState = null;
+
+    // 工作状态，保存为对应状态对象
+    this.wakeUpState = new WakeUpState(this);
+    // 精神饱满
+    this.energeticState = new EnergeticState(this);
+    // 疲倦
+    this.tiredState = new TiredState(this);
+
+    this.init();
+}
+
+Work.prototype.init = function() {
+    this.currentState = this.wakeUpState;
+    
+    // 点击事件，用于触发更新状态
+    document.body.onclick = () => {
+        this.currentState.behaviour();
+    };
+};
+
+// 更新工作状态
+Work.prototype.setState = function(state) {
+    this.currentState = state;
+}
+
+// 刚醒
+function WakeUpState(work) {
+    this.work = work;
+}
+
+// 刚醒的行为
+WakeUpState.prototype.behaviour = function() {
+    console.log(this.work.name, ':', '刚醒呢，睡个懒觉先');
+    
+    // 只睡了2秒钟懒觉就精神了..
+    setTimeout(() => {
+        this.work.setState(this.work.energeticState);
+    }, 2 * 1000);
+}
+
+// 精神饱满
+function EnergeticState(work) {
+    this.work = work;
+}
+
+EnergeticState.prototype.behaviour = function() {
+    console.log(this.work.name, ':', '超级精神的');
+    
+    // 才精神1秒钟就发困了
+    setTimeout(() => {
+        this.work.setState(this.work.tiredState);
+    }, 1000);
+};
+
+// 疲倦
+function TiredState(work) {
+    this.work = work;
+}
+
+TiredState.prototype.behaviour = function() {
+    console.log(this.work.name, ':', '怎么肥事，好困');
+    
+    // 不知不觉，又变成了刚醒着的状态... 不断循环呀
+    setTimeout(() => {
+        this.work.setState(this.work.wakeUpState);
+    }, 1000);
+};
+
+var work = new Work('曹操');
+```
+
+## 适配器模式
+* 含义： 解决两个软件实体间的接口不兼容的问题，对不兼容的部分进行适配
+* 核心： 解决两个已有接口之间不匹配的问题
+* 案例如下所示：
+```
+//渲染数据，格式限制为数组
+function renderData(data) {
+    data.forEach(function(item) {
+        console.log(item);
+    });
+}
+
+//对非数组的进行转化适配
+function arrayAdapter(data) {
+    if (typeof data !== 'object') {
+        return [];
+    }
+
+    if (Object.prototype.toString.call(data) === '[object Array]') {
+        return data;
+    }
+
+    var temp = [];
+    for (var item in data) {
+        if (data.hasOwnProperty(item)) {
+            temp.push(data[item]);
+        }
+    }
+    return temp;
+}
+var data = {
+    0: 'A',
+    1: 'B',
+    2: 'C'
+};
+
+renderData(arrayAdapter(data)); // A B C
+```
+
+## 外观模式
+* 含义：为子系统中的一组接口提供一个一致界面，定义一个高层接口，这个接口使子系统更加容易使用
+* 核心：可以通过请求外观接口来达到访问子系统，也可以选择越过外观来直接访问子系统
+* 实现案例，如下所示：
+```
+function start() {
+    console.log('start');
+}
+
+function doing() {
+    console.log('doing');
+}
+
+function end() {
+    console.log('end');
+}
+
+//外观函数
+function execute() {
+    start();
+    doing();
+    end();
+}
+
+//调用init开始执行
+function init() {
+    execute();
+}
+
+init();
+```
