@@ -905,3 +905,291 @@ axios.interceptors.request.eject(myInterceptor)
 const instance = axios.create();
 instance.interceptors.request.use(function () { })
 ```
+
+## MVC、MVP和MVVM
+### MVC
+* MVC是最经典的开发模式之一，最早是后台来的，随着前端的复杂度的增加，MVC的开发模式也带入了前端。该模式由三部分组成
+    * View(视图层)，试图与控制器之间，视图接收用户的操作，传递给控制器，有控制器决定采用那个函数来处理
+    * Controller(控制器)，控制器与模型之间，控制器将用户的具体操作，通过直接调用模型提供的方法来操作模型，或者是通过其他服务方法来操作模型
+    * Model(模型)，视图与模型之间，模型发生变化时，将会通过观察者模式，通知试图；视图将会从模型中取出数据显示，完成视图刷新
+* MVC有两个很明显的问题：
+    1. model层和view层直接打交道，导致这两层耦合度很高
+    2. 因为所有逻辑都写在controller层，导致controller层特别的臃肿
+### MVP
+* MVP模式是相对于MVC模式的改良，将Controller层用Presenter层代替，view层和Model层交互被Presenter层给隔断，从理论上去除View层和Model之间的耦合
+* 其结构可以说与MVC模式一样，唯一的区别就是其隔绝了View和Model
+
+### MVVM
+* MVVM模式就是通过双向绑定的机制，实现数据和UI内容，只要想改其中一方，另一方都能够及时更新的一种设计理念。MVP中的View和Presenter要相互持有，方便调用对方，而在MVVM模式中View和ViewModel通过Binding进行关联，他们之前的关联处理通过DataBinding完成
+## Vue双向绑定原理
+* 数据绑定：将数据源给绑定到一个类型(对象)实例上的某个属性的方法
+* 常见的架构模式有MVC MVP MVVM模式，目前前端框架基本上都是采用MVVM模式实现双向绑定。但是各个框架实现双向绑定的方法不同。当前主要的三种实现方式有
+    * 发布订阅模式
+    * Angular的脏查机制
+    * 数据劫持
+* 在Vue中采用的是数据劫持与发布订阅相结合的方式实现双向绑定，数据劫持主要通过Object.defineProperty来实现
+* Object.defineProperty方法中的get与set的使用，案例如下：
+```
+var modeng = {};
+
+var age;
+
+Object.defineProperty(modeng, 'age', {
+    get: function() {
+        console.log('获取年龄');
+        return age;
+    },
+
+    set: function(newVal) {
+        console.log('设置年龄');
+        age = newVal;
+    }
+})
+modeng.age = 18;
+console.log(modeng.age);
+//设置年龄
+//获取年龄
+//18
+```
+* 分析，MVVM模式的核心在与数据与视图是保持同步的，意思就是说数据改变时，会自动更新视图，视图发生改变是会更新数据。所以需要做的就是怎样去检测到数据的变化然后更新视图，如何检测到试图的变化然后去更新数据。通过上面所诉，可以采用Object.defineProperty的set函数来通知视图更新。
+* 具体实现方式：Vue是通过数据劫持结合发布订阅模式来实现双向绑定的，数据劫持的方式是通过Object.defineProperty中的get和set方式来实现。此时还需要一个监听器Observe来监听属性的变化。当属性发生变化后，需要一个Watcher订阅者来更新视图，同时还需要一个compile指令解析器，用来解析节点元素的指令与初始化视图。所以需要下面的三部分
+    * Observe监听器：用来监听属性的变化通知订阅者
+    * Watcher订阅者：收到属性的变化，然后更新视图
+    * Compiler解析器：解析指令，初始化模板，绑定订阅者
+* 监听器Observe，其作用就是去监听数据的每一个属性，由于这这个过程中可能会有很多个订阅者Watcher所以需要创建容器Dep去做一个统一的管理，具体实现如下：
+```
+function defineReactive(data, key, value) {
+    //递归调用，监听所有属性
+    observe(value);
+    var dep = new Dep();
+    Object.defineProperty(data, key, {
+        get: function() {
+            if (dep.target) {
+                dep.addSub(Dep.target);
+            }
+            return value;
+        },
+        set: function(newVal) {
+            if (value !== newVal) {
+                value = newVal;
+                //通知订阅器
+                dep.notify();
+            }
+        }
+    })
+}
+
+function observe(data) {
+    if (!data || typeof data !== "object") {
+        return;
+    }
+    Object.keys(data).forEach(key => {
+        defineReactive(data, key, data[key]);
+    })
+}
+
+function Dep() {
+    this.subs = [];
+}
+
+Dep.prototype.addSub = function (sub) {
+    this.subs.push(sub);
+}
+
+Dep.prototype.notify = function () {
+    console.log('属性变化通知Watcher执行更新视图函数');
+    this.subs.forEach(sub => {
+        sub.update();
+    })
+}
+
+Dep.target = null;
+// var modeng = {
+//     age: 18
+// }
+// observe(modeng);
+// modeng.age = 20;
+```
+* 订阅者Watcher的实现，其主要的作用是接受属性变化的通知，然后去执行更新函数去更新视图，因此需要做的就是下面的两步
+    * 把Watcher添加到Dep容器中，这里使用到监听器的get函数
+    * 接收到通知，执行更新函数
+```
+function Watcher(vm, prop, callback) {
+    this.vm = vm;
+    this.prop = prop;
+    this.callback = callback;
+    this.value = this.get();
+}
+
+Watcher.prototype = {
+    update: function() {
+        const value = this.vm.$data[this.prop];
+        const oldVal = this.value;
+        if (value !== oldVal) {
+            this.value = value;
+            this.callback(value);
+        }
+    },
+    get: function() {
+        //储存订阅器
+        Dep.target = this; 
+        //因为属性被监听，这一步会执行监听器里的get方法
+        const value = this.vm.$data[this.prop];
+        Dep.target = null;
+        return value;
+    }
+}
+```
+* 将Watcher和Observer相结合起来
+```
+function Mvue(options, prop) {
+    this.$options = options;
+    this.$data = options.data;
+    this.$prop = prop;
+    this.$el = document.querySelectorAll(options.el);
+    this.init();
+}
+
+Mvue.prototype.init = function() {
+    observer(this.$data);
+    this.$textContent = this.$data[this.$prop];
+    new Watcher(this, this.$prop, value => {
+        this.$el.$textContent = value;
+    })
+}
+
+//使用demo
+{/* <div id="app">{{name}}</div>
+const vm = new Mvue({
+    el: "#app",
+    data: {
+        name: "我是摩登"
+    }
+}, "name"); */}
+```
+* Compile解析器，其主要作用是一个用来解析指令初始化模板，添加订阅者，绑定更新的函数。因为在解析DOM节点的过程中会频繁的操作DOM，所以利用文档片段(DocumnetFragmebt)来帮助我们去解析DOM优化性能，如下所示：
+```
+function Compile(vm) {
+    this.vm = vm;
+    this.el = vm.$el;
+    this.fragment = null;
+    this.init();
+}
+
+Compile.prototype = {
+    init: function() {
+        this.fragment = this.nodeFragment(this.el);
+    },
+    nodeFragment: function(el) {
+        const fragment = document.createDocumentFragment();
+        let child = el.firstChild;
+        //将子节点，全部移动到文档碎片当中
+        while (child) {
+            fragment.appendChild(child);
+            child = el.firstChild;
+        }
+        return fragment;
+    },
+    compileNode: function(fragment) {
+        let childNodes = fragment.childNodes;
+        [...childNodes].forEach(node => {
+            if (this.isElementNode(node)) {
+                this.compile(node);
+            }
+
+            let reg = /\{\{(.*)}\}/;
+            let text = node.textContent;
+
+            if (reg.test(text)) {
+                let prop = reg.exec(text)[1];
+                //替换模板
+                this.compileText(node, prop);
+            }
+            
+            //编译子节点
+            if (node.childNodes && node.childNodes.length) {
+                this.compileNode(node);
+            }
+        })
+    },
+    compile: function(node) {
+        let nodeAttrs = node.attributes;
+        [...nodeAttrs].forEach(attr => {
+            let name = attr.name;
+            if (this.isDirective(name)) {
+                let value = attr.value;
+                if (name === "v-model") {
+                    this.compileModel(node, value);
+                }
+            }
+        })
+    },
+    compileModel: function(node,prop) {
+        let val = this.vm.$data[prop];
+        this.updateModel(node, val);
+
+        new Watcher(this.vm, prop, (value) => {
+            this.updateModel(node, value);
+        })
+
+        node.addEventListener('input', e => {
+            let newValue = e.target.value;
+            if (val === newValue) {
+                return;
+            }
+            this.vm.$data[prop] = newValue;
+        });
+    },
+    compileText: function(node, prop) {
+        let text = this.vm.$data[prop];
+        this.updateView(node, text);
+        new Watcher(this.vm, prop, (value) => {
+            this.updateView(node, value);
+        });
+    },
+    updateModel: function(node, value) {
+        node.value = typeof value === 'undefined' ? '' : value;
+    },
+    updateView: function(node, value) {
+        node.textContent = typeof value === 'undefined' ? '' : value;
+    },
+    isDirective: function(attr) {
+        return attr.indecOf('v-') !== -1;
+    },
+    isElementNode: function(node) {
+        return node.nodetype === 1;
+    },
+    isTextNode: function(node) {
+        return node.nodeType === 3;
+    }
+}
+```
+* 当尝试去修改数据时，有时通过vm.$data.name去修改数据，而不是直接用Vue中的vm.name去修改，此时就需要改变数据代理，如下所示：
+```
+function Mvue(options) {
+    this.$options = options;
+    this.$data = options.data;
+    this.$el = document.querySelectorAll(options.el);
+    //数据代理
+    Object.keys(this.$data).forEach(key => {
+        this.proxyData(key);
+    });
+    this.init();
+}
+
+Mvue.prototype.init = function() {
+    observer(this.$data);
+    new Compile(this);
+}
+
+Mvue.prototype.proxyData = function() {
+    Object.defineProperty(this, key, {
+        get: function() {
+            return this.$data[key];
+        },
+        set: function(value) {
+            this.$data[key] = value;
+        }
+    })
+}
+```

@@ -390,3 +390,251 @@
 //     return Promise.reject(error);
 // })
 
+// var modeng = {};
+
+// var age;
+
+// Object.defineProperty(modeng, 'age', {
+//     get: function() {
+//         console.log('获取年龄');
+//         return age;
+//     },
+
+//     set: function(newVal) {
+//         console.log('设置年龄');
+//         age = newVal;
+//     }
+// })
+// modeng.age = 18;
+// console.log(modeng.age);
+
+//Observe实现
+// function defineReactive(data, key, value) {
+//     //递归调用，监听所有属性
+//     observe(value);
+//     var dep = new Dep();
+//     Object.defineProperty(data, key, {
+//         get: function() {
+//             if (dep.target) {
+//                 dep.addSub(Dep.target);
+//             }
+//             return value;
+//         },
+//         set: function(newVal) {
+//             if (value !== newVal) {
+//                 value = newVal;
+//                 //通知订阅器
+//                 dep.notify();
+//             }
+//         }
+//     })
+// }
+
+// function observe(data) {
+//     if (!data || typeof data !== "object") {
+//         return;
+//     }
+//     Object.keys(data).forEach(key => {
+//         defineReactive(data, key, data[key]);
+//     })
+// }
+
+// function Dep() {
+//     this.subs = [];
+// }
+
+// Dep.prototype.addSub = function (sub) {
+//     this.subs.push(sub);
+// }
+
+// Dep.prototype.notify = function () {
+//     console.log('属性变化通知Watcher执行更新视图函数');
+//     this.subs.forEach(sub => {
+//         sub.update();
+//     })
+// }
+
+// Dep.target = null;
+
+// var modeng = {
+//     age: 18
+// }
+// observe(modeng);
+// modeng.age = 20;
+
+//Watcher实现
+// function Watcher(vm, prop, callback) {
+//     this.vm = vm;
+//     this.prop = prop;
+//     this.callback = callback;
+//     this.value = this.get();
+// }
+
+// Watcher.prototype = {
+//     update: function() {
+//         const value = this.vm.$data[this.prop];
+//         const oldVal = this.value;
+//         if (value !== oldVal) {
+//             this.value = value;
+//             this.callback(value);
+//         }
+//     },
+//     get: function() {
+//         //储存订阅器
+//         Dep.target = this; 
+//         //因为属性被监听，这一步会执行监听器里的get方法
+//         const value = this.vm.$data[this.prop];
+//         Dep.target = null;
+//         return value;
+//     }
+// }
+
+//整Watcher以及Observe
+// function Mvue(options, prop) {
+//     this.$options = options;
+//     this.$data = options.data;
+//     this.$prop = prop;
+//     this.$el = document.querySelectorAll(options.el);
+//     this.init();
+// }
+
+// Mvue.prototype.init = function() {
+//     observer(this.$data);
+//     this.$textContent = this.$data[this.$prop];
+//     new Watcher(this, this.$prop, value => {
+//         this.$el.$textContent = value;
+//     })
+// }
+
+
+//传过来的数据模式
+{/* <div id="app">{{name}}</div>
+const vm = new Mvue({
+    el: "#app",
+    data: {
+        name: "我是摩登"
+    }
+}, "name"); */}
+
+//Compile
+// function Compile(vm) {
+//     this.vm = vm;
+//     this.el = vm.$el;
+//     this.fragment = null;
+//     this.init();
+// }
+
+// Compile.prototype = {
+//     init: function() {
+//         this.fragment = this.nodeFragment(this.el);
+//     },
+//     nodeFragment: function(el) {
+//         const fragment = document.createDocumentFragment();
+//         let child = el.firstChild;
+//         //将子节点，全部移动到文档碎片当中
+//         while (child) {
+//             fragment.appendChild(child);
+//             child = el.firstChild;
+//         }
+//         return fragment;
+//     },
+//     compileNode: function(fragment) {
+//         let childNodes = fragment.childNodes;
+//         [...childNodes].forEach(node => {
+//             if (this.isElementNode(node)) {
+//                 this.compile(node);
+//             }
+
+//             let reg = /\{\{(.*)}\}/;
+//             let text = node.textContent;
+
+//             if (reg.test(text)) {
+//                 let prop = reg.exec(text)[1];
+//                 //替换模板
+//                 this.compileText(node, prop);
+//             }
+            
+//             //编译子节点
+//             if (node.childNodes && node.childNodes.length) {
+//                 this.compileNode(node);
+//             }
+//         })
+//     },
+//     compile: function(node) {
+//         let nodeAttrs = node.attributes;
+//         [...nodeAttrs].forEach(attr => {
+//             let name = attr.name;
+//             if (this.isDirective(name)) {
+//                 let value = attr.value;
+//                 if (name === "v-model") {
+//                     this.compileModel(node, value);
+//                 }
+//             }
+//         })
+//     },
+//     compileModel: function(node,prop) {
+//         let val = this.vm.$data[prop];
+//         this.updateModel(node, val);
+
+//         new Watcher(this.vm, prop, (value) => {
+//             this.updateModel(node, value);
+//         })
+
+//         node.addEventListener('input', e => {
+//             let newValue = e.target.value;
+//             if (val === newValue) {
+//                 return;
+//             }
+//             this.vm.$data[prop] = newValue;
+//         });
+//     },
+//     compileText: function(node, prop) {
+//         let text = this.vm.$data[prop];
+//         this.updateView(node, text);
+//         new Watcher(this.vm, prop, (value) => {
+//             this.updateView(node, value);
+//         });
+//     },
+//     updateModel: function(node, value) {
+//         node.value = typeof value === 'undefined' ? '' : value;
+//     },
+//     updateView: function(node, value) {
+//         node.textContent = typeof value === 'undefined' ? '' : value;
+//     },
+//     isDirective: function(attr) {
+//         return attr.indecOf('v-') !== -1;
+//     },
+//     isElementNode: function(node) {
+//         return node.nodetype === 1;
+//     },
+//     isTextNode: function(node) {
+//         return node.nodeType === 3;
+//     }
+// }
+
+function Mvue(options) {
+    this.$options = options;
+    this.$data = options.data;
+    this.$el = document.querySelectorAll(options.el);
+    //数据代理
+    Object.keys(this.$data).forEach(key => {
+        this.proxyData(key);
+    });
+    this.init();
+}
+
+Mvue.prototype.init = function() {
+    observer(this.$data);
+    new Compile(this);
+}
+
+Mvue.prototype.proxyData = function() {
+    Object.defineProperty(this, key, {
+        get: function() {
+            return this.$data[key];
+        },
+        set: function(value) {
+            this.$data[key] = value;
+        }
+    })
+}
