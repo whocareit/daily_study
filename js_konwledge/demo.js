@@ -612,29 +612,30 @@ const vm = new Mvue({
 //     }
 // }
 
-function Mvue(options) {
-    this.$options = options;
-    this.$data = options.data;
-    this.$el = document.querySelectorAll(options.el);
-    //数据代理
-    Object.keys(this.$data).forEach(key => {
-        this.proxyData(key);
-    });
-    this.init();
-}
+// function Mvue(options) {
+//     this.$options = options;
+//     this.$data = options.data;
+//     this.$el = document.querySelectorAll(options.el);
+//     //数据代理
+//     Object.keys(this.$data).forEach(key => {
+//         this.proxyData(key);
+//     });
+//     this.init();
+// }
 
-Mvue.prototype.init = function() {
-    observer(this.$data);
-    new Compile(this);
-}
+// Mvue.prototype.init = function() {
+//     observer(this.$data);
+//     new Compile(this);
+// }
 
-Mvue.prototype.proxyData = function() {
-    Object.defineProperty(this, key, {
-        get: function() {
-            return this.$data[key];
-        },
-        set: function(value) {
-            this.$data[key] = value;
-        }
-    })
-}
+// Mvue.prototype.proxyData = function() {
+//     Object.defineProperty(this, key, {
+//         get: function() {
+//             return this.$data[key];
+//         },
+//         set: function(value) {
+//             this.$data[key] = value;
+//         }
+//     })
+// }
+
