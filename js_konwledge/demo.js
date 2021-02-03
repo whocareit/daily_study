@@ -368,3 +368,25 @@
 // <script>
 //   console.log(myBundle());
 // </script>
+
+// //增加请求拦截
+// axios.interceptors.request.use(function (config) {
+//     //Do something before request is sent
+//     return config;
+// }, function (error) {
+//     //Do something with request error
+//     return Promise.reject(error);
+// })
+
+
+// //增加响应拦截
+// axios.interceptors.response.use(function (response) {
+//     //任何状态码在2XX之内的都会去触发这个方法
+//     //Do something with response data
+//     return response;
+// }, function (error) {
+//     //任何状态码在2XX之外的都会去触发这个方法
+//     //Do something with response error
+//     return Promise.reject(error);
+// })
+

@@ -859,3 +859,49 @@ export function github() {
 }
 <script src="./index.js" type="module"></script>
 ```
+
+## axios依赖包
+* 是一种基于Promise的方式，对http协议在浏览器端和node中的使用
+* 其具有以下的这些缺点：
+    * 采用XMLHttpRequest从浏览器端
+    * 在node中使用http请求
+    * 支持PromiseAPI
+    * 有request以及response接口
+    * 转化request以及response请求
+    * 取消request
+    * 自动转化json数据
+    * 客户端支持防止XSRF攻击的保护
+* 安装方式，使用yarn或者npm包，或者是bower，使用cdn的方式都可
+* 拦截器，可以拦截请求或者是响应在事件被then或者是catch之前。如下所示：
+```
+//增加请求拦截
+axios.interceptors.request.use(function (config) {
+    //Do something before request is sent
+    return config;
+}, function (error) {
+    //Do something with request error
+    return Promise.reject(error);
+})
+
+
+//增加响应拦截
+axios.interceptors.response.use(function (response) {
+    //任何状态码在2XX之内的都会去触发这个方法
+    //Do something with response data
+    return response;
+}, function (error) {
+    //任何状态码在2XX之外的都会去触发这个方法
+    //Do something with response error
+    return Promise.reject(error);
+})
+```
+* 如果需要在之后移除拦截器，你可以调用eject方法来处理，如下所示
+```
+const myInterceptor = axios.interceptor.request.use(function () {})
+axios.interceptors.request.eject(myInterceptor)
+```
+* 在客户端的实例中添加拦截器的方式
+```
+const instance = axios.create();
+instance.interceptors.request.use(function () { })
+```
