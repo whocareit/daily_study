@@ -1194,7 +1194,7 @@ Mvue.prototype.proxyData = function() {
 }
 ```
 
-## express中间价简单模拟
+## express中间件简单模拟
 * 中间件：中间件就是匹配路由之前或者匹配路由完成做的一系列操作
 * express文档中对于中间件的描述：
     * 执行任何代码
@@ -1209,7 +1209,7 @@ Mvue.prototype.proxyData = function() {
     * 第三方中间件
 * express中的中间件的简单模拟,具体代码查看当前目录下的express文件夹，like-express就是简单的模拟express的中间件原理
 
-## koa2中间价简单模拟
+## koa2中间件简单模拟
 * express文档中对于中间件的描述：
     * 执行任何代码
     * 修改请求和响应对象
