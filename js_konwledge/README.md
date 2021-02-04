@@ -1221,3 +1221,42 @@ Mvue.prototype.proxyData = function() {
     * 错误处理中间件
     * 第三方中间件
 * koa2中的中间件的简单模拟,具体代码查看当前目录下的express文件夹，like-koa2就是简单的模拟考koa2的中间件原理
+
+
+## WebSocket原理，以如何实现持久化连接
+* WebSocket是HTML5出的协议，也就是说HTTP协议没有变化，也就是说与HTTP协议没有关系。其支持持久化连接。其是为了兼容现有浏览器的握手规范。可以这样来理解websocket其和http协议有交集，但并不是全部。
+* WebSocket的其他特点：
+    * 建立在TCP协议之上，服务器端实现比较容易
+    * 与HTTP协议有着良好的兼容性，默认的端口也是80和443，并且握手阶段采用HTTP协议，因此握手时不容易屏蔽，并能通过各种HTTP代理服务器
+    * 数据格式比较轻量级，性能开销小，通信高效
+    * 可以发送文本，也可以发送二进制数据
+    * 没有同源限制，客户端可以与任意服务器通信
+    * 协议标识符是ws(如果加密，则为wss)，服务器网址就是URL
+* Websocket是什么样的协议，具体有什么优点？
+    * websocket是一个持久化的协议，相对于HTTP这种非持久化的协议来说。
+        1. http生命周期通过Request来界定，也就是说一个Request和一个Response，那么在HTTP1.0中，这次HTTP请求就结束了。在HTTP1.1中进行改进，使得有一个keep-alive，也就是说，在一个http连接中，可以发送多个Request，接受多个Response。但是需要在HTTP中记住，request的数量与response的数量是相等的。
+        2. WebSocket中发起请求的请求头的信息如下:
+        ```
+        GET /chat HTTP/1.1
+        Host: server.example.com
+        Upgrade: websocket
+        Connection: Upgrade
+        Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==
+        Sec-WebSocket-Protocol: chat, superchat
+        Sec-WebSocket-Version: 13
+        Origin: http://example.com
+        ```
+        * 其中下面的这两个东西表示告诉服务器发送的请求的协议是Websocket协议
+        ```
+        Upgrade: websocket
+        Connection: Upgrade
+        ```
+        * Sec-WebSocket-Key是一个Base64 encode的值，这是浏览器随机生成的，用于验证是不是Websocket助理
+        * Sec-WebSocket-Protocol是一个用户定义的字符串，用来区分同URL下，不同的服务所需要的协议
+        * Sec-WebSocket-Version是告诉服务器所使用的WebSocket Draft(版本)
+* webSocket的作用
+    * 在这之前需要知道下面的几个内容ajax轮询和long poll的原理
+    1. ajax轮询：让浏览器隔个几秒就发送一次请求，询问服务器是否有新消息。这种方式需要服务器有很快的处理速度和资源
+    2. long poll：与ajax轮询差不多，都是采用轮询的方式，不过采取的是阻塞模型，也就是说，客户端发送请求后，如果没消息，就一直不返回Response给客户端。直到有消息才返回，返回完后，客户端再次创立连接，周而复始。long poll需要有很高的并发，也就是说同时接待客户的能力
+    * 上面的这两种方式都是在不断地建立HTTP连接，然后等待服务器处理，然后可以体现HTTP协议被动性的特点，即服务端不能主动联系客户端，只能有客户端发起
+    * WebSocket作用：解决被动性，当服务器完成协议升级后，服务端就可以主动推送信息到客户端。这样做的好处是只需要经过一次HTTP请求，就可以做到源源不断的信息传送
