@@ -1260,3 +1260,143 @@ Mvue.prototype.proxyData = function() {
     2. long poll：与ajax轮询差不多，都是采用轮询的方式，不过采取的是阻塞模型，也就是说，客户端发送请求后，如果没消息，就一直不返回Response给客户端。直到有消息才返回，返回完后，客户端再次创立连接，周而复始。long poll需要有很高的并发，也就是说同时接待客户的能力
     * 上面的这两种方式都是在不断地建立HTTP连接，然后等待服务器处理，然后可以体现HTTP协议被动性的特点，即服务端不能主动联系客户端，只能有客户端发起
     * WebSocket作用：解决被动性，当服务器完成协议升级后，服务端就可以主动推送信息到客户端。这样做的好处是只需要经过一次HTTP请求，就可以做到源源不断的信息传送
+
+## 前端实用小技巧
+* 多表达式多if判断
+```
+//长
+if (x === 'abc' || x === 'def' || x === 'ghi' || x ==='jkl') {
+  //logic
+}
+//短
+if(['abc', 'def', 'ghi', 'jkl'].includes(x)) {
+
+}
+```
+
+* 简写if-else
+```
+let test: boolean;
+if (x > 100) {
+    test = true;
+} else {
+    test = false;
+}
+
+//等效于
+let test = (x > 100) ? true: false;
+//等效与
+let test = x > 10;
+```
+
+* 合并声明变量
+```
+//长
+let test1;
+let test2 = 1;
+
+//等效于
+let test1, test2 = 1;
+```
+
+* 合并变量赋值
+```
+//长
+let lest1 = 1,test2 = 2, test = 3;
+//短
+let [test1, test2, test3] = [1, 2, 3];
+```
+
+* &&运算符
+```
+if (test1) {
+    callMethod();
+}
+
+//等同于
+test1 && callMethod();
+```
+
+* 短函数调用
+```
+const fun1 = () => console.log('fun1');
+const fun2 = () => console.log('fun2');
+//长
+let test = 1;
+if (test == 1) {
+    fun1();
+} else {
+    fun2();
+}
+//短
+(test == 1 ? fun1 : fun2)();
+```
+
+* switch简记法
+```
+//长
+switch (data) {
+    case 1:
+        test1();
+    break;
+
+    case 2:
+        test2();
+    break;
+
+    case 3: 
+        test3();
+    break;
+}
+
+//短
+const data = {
+    1: test1,
+    2: test2,
+    3: test
+}
+
+data[something] && data[something]();
+```
+
+* 默认参数值
+```
+function add(test1, test2) {
+    if (test1 === undefined) {
+        test1 = 1;
+    } 
+    if (test2 === undefined) {
+        test2 = 2;
+    }
+    return test1 + test2;
+}
+
+//短
+const add = (test1 = 1, test2 = 2) => test1 + test2;
+```
+
+* 扩展运算符
+```
+//长-合并数组
+const data = [1, 2, 3];
+const test = [4, 5, 6].concat(data);
+
+//短-合并数组
+const data = [1, 2, 3];
+const test = [1, 2, 3, ...data];
+
+//长-拷贝数组
+const test1 = [1, 2, 3];
+const data = test1.slice();
+
+//短-拷贝数组
+const test1 = [1, 2, 3];
+const data = [...test1];
+```
+
+* 在数组中查找最大值和最小值
+```
+const arr = [1, 2, 3];
+Math.max(...arr);
+Math.min(...arr);
+```
