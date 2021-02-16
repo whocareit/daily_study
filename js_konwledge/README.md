@@ -1436,3 +1436,216 @@ Math.min(...arr);
         * 用户清空浏览器缓存
         * manifest文件被修改
         * 由程序来更新应用缓存
+# nginx
+* 含义：nginx是一个高性能的http和反向代理服务器，特点是占用内存少，并发能力强，事实上nginx的并发能力确实是在同类型的网页服务器中表现较好
+* 意义：专门为性能优化而开发，性能是其最重要的考量，实现上非常注重效率，能经受高负载的考验，有报告表明能支持高达5万个并发连接数
+## nginx的使用
+* 反向代理
+ * 正向代理：在客户端(浏览器端)配置代理服务器，通过代理服务器进行互联网访问
+ * 反向代理：在客户端(浏览器端)将请求发送到反向代理服务器，由反向代理服务器去选择目标服务器来获取数据的方式
+* 负载均衡： 单个服务器解决不了的问题，可以通过增加服务器的数量，然后将请求分发到各个服务器上，将原先的请求集中到单个服务器上的情况改为将请求分发到多个服务器上，将负载分发(近似于平均分发)到不同的服务器
+* 动静分离： 为了加快网站的解析速度，可以把动态页面和静态页面由不同的服务器来解析，加快解析速度，降低原来单个服务其的压力
+## nginx安装、命令和配置文件
+* 在linux中安装nginx：
+    1. 使用远程连接工具连接linux操作系统
+    2. 安装nginx相关素材(依赖)
+        1. pcre
+        2. openssl
+        3. zlib
+        4. nginx
+    3. 安装方式：
+        1. 安装pcre： wget http://download.sourceforge.net/project/pcre/pcre/8.37/pcre-8.37.tar.gz
+            1. 解压文件方式： tar -xvf 安装包名字
+            2. 解压完成之后，使用./configure,再回到pcre目录下执行make && make install指令
+            3. 查看当前版本号的方式: pcre-config --version
+        2. 安装openssl
+        3. 安装zlib
+        ```
+        yum -y install make zlib zlib-devel gcc-c++libtool openssl openssl-devel
+        ```
+        4. 安装nginx
+            1. 安装nginx安装包
+            2. 解压tar -xvf 
+            3. 执行那个./configure
+            4. make && make install
+        5. 安装成功之后，再usr中会多出来一个文件夹local/nginx,在nginx中有sbin启动脚本进入该脚本执行nginx即可
+        6. 在usr中有个conf文件，该文件中是关于nginx的配置文件相关
+    4. 查看开放的端口号的方式：firewall-cmd --list-all
+    5. 设置开放的端口号：
+        1. firewall-cmd --add-service=http -permanent
+        2. sudo firewall-cmd --add-port=80/tcp --permanent
+    6. 重置防火墙方式：firewall -cmd --reload
+* nginx常用命令
+    1. 使用nginx的条件：必须进入到/usr/local/sbin
+    2. 查看nginx的版本号： ./nginx -v
+    3. 启动nginx的方式： ./nginx
+    4. 关闭方式方式： ./nginx -s stop
+    5. 重新加载方式: ./nginx -s reload
+* nginx配置文件
+    1. nginx的配置文件在local/conf/nginx.conf
+    2. vi打开文件
+    3. 三个组成部分
+        1. 全局块： 从配置文件开始到events块之间的内容，主要会设置一些影响nginx服务器整体运行的配置指令，如：worker-process: 1；worker-process的值越大，可以支持的并发处理量越多
+        2. events快：涉及到的指令主要影响nginx服务器与用户的网络连接，比如:worker-connection 1024;支持的最大连接数为1024
+        3. http块：
+            1. 全局块：包括文件的引入、MIME_TYPE定义、日志自定义、连接超时时间，单链接请求上线等
+            2. server块：这块和虚拟主机有密切关系，虚拟主机从用户角度看，和一台独立的硬件主机完全一样，该技术的产生是为了节省互联网服务器的硬件成本。每一个http块可以包含多个server块，而每一个serveer块相当于一个虚拟主机。而每一个server块也分为全局server块和location块
+## nginx配置实例
+### 反向代理
+#### 实例一
+* 再window中反向代理的配置过程：
+    1. 首先在window得电脑中需要配置域名与IP之间的关系
+    2. 在window系统中的windows/System32/drives/etc中的HOSTS中配置，ip地址加上对应的域名，如下所示：
+    ```
+    192.168.17.129 www.123.com
+    ```
+    3. 在nginx中做反向代理服务器的配置。在http块中的server块中进行，listen表示访问的端口号，server_name表示nginx中的代理服务器的ip，location中的块中proxy_pass 访问的域名与其对应的端口号
+#### 实例二
+* 实现效果：使用nginx反向代理，根据访问的路径跳转到不同端口的服务中，如下所示：
+```
+访问http://127.0.0.1:9001/edu/ 直接跳转到127.0.0.1:8081
+访问http://127.0.0.1:9001/vod/ 直接跳转到127.0.0.1:8082
+```
+* 配置方式
+    1. 准备工作
+        1. 需要准备两个服务器端口，并将两个服务器都启动起来
+        2. 创建文件夹和准备页面，即前端中所访问的页面
+    2. 如何在nginx中去设置配置文件，进行反向代理，如下所示：
+    ```
+        server {
+            listen 9001;
+            server_name 192.168.17.129;
+
+            location ~ /edu/ {
+                proxy_pass http://127.0.0.1:8080;
+            }
+
+            location ~ /vod/ {
+                proxy_pass http://127.0.0.1:8081;
+            }
+        }
+    ```
+    3. 开放需要访问的端口号9001 8081 8080
+### 负载均衡
+* 实现效果：在浏览器地址栏中输入http://192.168.17.128/edu/a.html，负载均衡，平均8080和8081端口中
+* 准备工作：
+    1. 准备两台服务器，一台8080，另外一台8081
+    2. 在两台服务里面的的webapps目录中，创建名称是edu文件夹，在edu文件夹中创建页面a.html，用于测试
+    3. nginx的配置文件如下所示：
+    ```
+    http {
+        ...
+        upstream myserver {
+            server 115.28.52.63:8080;
+            server 115.28.52.63:8081;
+        }
+
+        server {
+            location / {
+                proxy_pass myserver;
+            }
+        }
+    }
+    ```
+    4. nginx中负载均衡的几种方式
+        * 轮循方式：每种请求按照时间顺序注意分配到不同的后端服务器中，如果后端服务器down掉，能自动剔除
+        * weight：weight代表权重，权重越高被分配到的客户端越多，如下所示：
+        ```
+        upstream myserver {
+            server 112.89.23.23:8080 weight=1;
+            server 112.89.23.23:8081 weight=2;
+        }
+        ```
+        * ip_hash:每个请求按访问ip的hash结果分配，这样每个访客固定访问一个后端服务器(换句话说就是第一次访问之后，下次就会访问第一次访问的这个ip地址)
+        ```
+        upstream myserver {
+            ip_hash;
+            server 112.23.45.67:8001;
+            server 112.23.45.57:8081;
+        }
+        ```
+        * fair：按照后端服务器的响应时间来分配请求，响应时间短的优先分配
+        ```
+        upstream myserver {
+            server 112.32.45.67:8081
+            server 113.34.56.56:8080
+            fair
+        }
+        ```
+### 动静分离
+* 动静分离的两种方式：
+    1. 纯粹把静态文件独立成单独的域名，放在独立的服务器上
+    2. 动态和静态文件混合在一起发布，然后再通过nginx分开
+* 动静分离时的转发方式：通过location指定不同的后缀名实现不同的请求转发。通过expires参数设置，可以使浏览器缓存过期时间，减少与服务器之间的请求和流量。如果设置请求发生在未过期，则返回状态码304,表示直接从浏览器的缓存中去取数据。否则就需要服务器下发
+* 准备工作：在linux系统中准备静态资源，用于进行访问
+* 具体在nginx中的配置方式如下：
+```
+location /www/ {
+    root /data/;
+    index index.html index.htm;
+}
+
+location /image/ {
+    root /data/;
+    autoindex on;
+}
+//其中的autoindex表示打开当前目录下的所有文件
+```
+### 高可用集群
+* 使用场景，当nginx在down机之后去用备用机器的方式
+* 配置高可用的准备刚工作
+    1. 需要两台服务器 192.168.17.129和192.168.17.131
+    2. 在两台服务器上安装nginx
+    3. 在两台服务器上安装keepalived,安装方式如下：
+    ```
+    安装方式：
+    1. yum install keepalived -y
+    2. 直接下载安装包，然后拖动
+    查询安装方式：
+    rpm -q -a keepalived
+    3. 安装完成之后在usr/etc/keepalived.conf中
+    ```
+* 关于在keepalived.conf中的配置文件的说明
+```
+//全局配置
+global defs {
+    notification_emial {
+        ...
+    }
+    notification_email_from ...
+    smtp_server 192.168.17.129
+    smtp_connect_timeout 30
+    //通过这个能访问到主机名字
+    router_id LVS_DEVELBACK
+}
+//脚本检测配置
+vrrp_script chk_http_port {
+    script: /usr/local/src/nginx_check.sh"
+    interval 2 #(检测脚本执行的间隔)
+    weight 2
+}
+
+vrrp_instance VI_1 {
+    state_BCKUP #备用服务器BACKUP 主MASTER
+    interface ens33 #网卡的名字
+    priority 90 #主、备机取不同的优先级，主机值较大，备用机值较小
+    advert_int 1 # 默认值为1，检测主机或者是备用机的信号
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        192.168.17.50 //VRRP H虚拟地址，表示虚拟机的地址
+    }
+}
+```
+## nginx原理解析
+1. nginx的组成由master和worker共组成，只能有一个master但是可以有多个worker
+2. worker的工作方式，是采用争抢式的方式来进行的，多个woker去争抢一个请求
+3. master-worker机制的好处：首先对于每个worker进程来说，独立的进程，不需要加锁，所以能够省掉锁带来的开销，同时在编程以及问题的查找时，也会方便很多。其次采用独立的进程，可以让相互之间不会影响，一个进程退出后，其他进程还在工作，服务不会中断，master机制则很快启动新的worker进程。
+4. 需要设置多少个worker比较合适: nginx同redis类似都采用了io多路复用机制，每个worker进程中都只有一个主线程，通过异步非阻塞的方式来处理请求，即使是成千上万个请求也不在话下，每个worker的线程可以把一个cpu的性能发挥到及至，因而在通常情况下worker数和服务器的cpu数相等最为适宜
+5. 连接数worker_connection
+* 第一个：发送请求，占用了worker的几个连接数，答案是两个或者四个
+* 第二个：nginx有一个master，有四个worker，每个worker支持最大的连接数据1024，其所支持的最大并发数是多少
+    * 普通的静态访问最大并发数是：worker_connection*worker_process / 2
+    * 如果http作为反向代理来说，最大并发数是worker_connection*worker_process / 4
