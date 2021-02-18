@@ -639,3 +639,75 @@ const vm = new Mvue({
 //     })
 // }
 
+
+// function bar(a) {
+//     console.log(a,b);
+//     var b = 3;
+//     console.log(a, b);
+//     var a = 1;
+//     console.log(a, b);
+//     function a() {}
+//     console.log(a, b);
+// }
+// // bar(3);
+
+
+// function flat(arr) {
+//     let cur = [];
+//     arr.forEach(ele => Array.isArray(ele) ? cur = cur.concat(flat(ele)) : cur.push(ele));
+//     return cur;
+// }
+
+// // console.log(flat([1, [ 12 ,4, [ 123,[1, 2, 3], 34, 56], 34]]))
+
+// // var arr1 = [1, 2, 3, 4];
+
+// // console.log(arr1.map(x => [x * 2]));
+
+// // console.log(arr1.flatMap(x => [ [x * 2 ]]));
+
+// // console.log([1, 3, 34, 45, 67, 90].some(ele => ele > 99))
+
+// const arr = [10, 45, 34, 12, 34, 56];
+// // console.log(arr.sort((a, b) => a - b));
+// // console.log(arr);
+// // console.log(arr.slice(1, 3));
+// console.log(arr.splice(1, 2, 11, 12));
+// console.log(arr);
+
+// const str = 'hello domino'
+
+// console.log(str.charAt(1));
+// console.log('a'.charCodeAt() > 255);
+
+// console.log('1'.concat(str));
+
+// console.log(str.endsWith('no'));
+// console.log(str.includes('domino'));
+
+// const paragraph = 'The quick brown fox jumps over the lazy dog. If the dog barked, was it really lazy?';
+
+// const searchTerm = 'dog';
+// const indexOfFirst = paragraph.indexOf(searchTerm);
+// console.log(indexOfFirst);
+
+// const name2 = '\u0041\u006d\u0065\u0301\u006c\u0069\u0065';
+
+// const name2NFC = name2.normalize('NFD');
+// console.log(name2);
+// console.log(name2NFC);
+
+// const str1 = `I have a dream is to be a basketball's player`;
+// console.log(str1.padEnd(56,'.'));
+
+// const str = '2';
+// console.log(str.padStart(3, '0'));
+
+// console.log('123'.repeat(4));
+
+const p = 'The quick brown fox jumps over the lazy dog. If the dog reacted, was it really lazy?';
+
+console.log(p.replace('dog', 'monkey'));
+
+const regex = /Dog/i;
+console.log(p.replace(regex, 'fereet'));
