@@ -1692,4 +1692,14 @@ vrrp_instance VI_1 {
 * String.prototype.substring, 该方法返回一个字符串在开始索引到结束索引之间的一个子集，或从开始索引直到字符串的末尾的一个子集
 * String.prototype.toLowerCase, 该方法将返回一个全部为小写的字符串
 * String.prototype.trim, 该方法去除该字符串中的前后空格
-* String.prototype.toUpperCase, 该方法将原字符串改为全大写
+* String.prototype.toUpperCase, 该方法将原字符串改为大写
+
+## 浏览器中的多线程
+* js是单线程的，但是浏览器是多线程的，多个县城相互配合以保持同步，浏览器下的线程有  
+    * javascript引擎线程，用于去解析javascript代码
+    * GUI线程(与javascript线程是互斥的)
+    * 事件线程(onclick, onchange等)
+    * 定时器线程
+    * 异步http线程，负责数据请求
+    * EventLoop轮询处理线程，事件被触发时该线程会把事件添加到待处理队列的队尾
+* 浏览器中，主线程和异步线程之间是怎样配合的：主线程发送一个一步请求，相应的工作线程接收到请求并告知主线程已收到通知(异步函数返回);主线程可以继续执行后面的代码，同时工作线程执行异步任务；工作线程完成工作之后，通知主线程；主线程收到通知后，执行一定的动作(调用回调函数)
