@@ -705,9 +705,51 @@ const vm = new Mvue({
 
 // console.log('123'.repeat(4));
 
-const p = 'The quick brown fox jumps over the lazy dog. If the dog reacted, was it really lazy?';
+// const p = 'The quick brown fox jumps over the lazy dog. If the dog reacted, was it really lazy?';
 
-console.log(p.replace('dog', 'monkey'));
+// console.log(p.replace('dog', 'monkey'));
 
-const regex = /Dog/i;
-console.log(p.replace(regex, 'fereet'));
+// const regex = /Dog/i;
+// console.log(p.replace(regex, 'fereet'));
+
+// function deepClone(target, origin) {
+//     var target = target || {}, toStr = Object.prototype.toString;
+//     for (let item in origin) {
+//         if(origin.hasOwnProperty(item)){
+//             if(origin[item] !== null && typeof origin[item] === 'object') {
+//                 if(toStr.call(origin[item]) === '[object Array]') {
+//                     target[item] = [];
+//                 } else {
+//                     target[item] = {};
+//                 }
+//                 deepClone(target[item], origin[item]);
+//             } else {
+//                 target[item] = origin[item];
+//             }
+//         }
+//     }
+//     return target;
+// }
+
+// let obj = {
+//     ad: 1,
+//     cd: {
+//         ad: {
+//             ad: {
+//                 ad: {
+//                     ad: 1
+//                 }
+//             }
+//         }
+//     }
+// }
+// console.log(deepClone({}, obj))
+
+const obj = {};
+
+Object.defineProperty(obj, 'demo', {
+    value: 21,
+    writable: true
+})
+
+console.log(obj);

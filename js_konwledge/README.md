@@ -1676,24 +1676,35 @@ vrrp_instance VI_1 {
 * String.prototype.includes(), 该方法用于判断一个字符串是否包含在另一个字符串中，根据情况返回true或false
 * String.prototype.indexOf(), 该方法返回调用它的String对象中第一次出现的指定值的索引
 * String.prototype.lastIndexOf(), 该方法返回调用String对象的指定值的最后一次出现的索引，在第一个字符串中的指定位置从后向前搜索。如果没有找到这个特定值则返回-1
-* String.prototype.match, 该方法检索返回一个字符串匹配正则表达式的结果
-* String.prototype.matchAll, 该方法返回一个包含所有匹配正则表达式的结果及分组捕获组的迭代器
-* String.prototype.normalize, 该方法会按照制定的一种Unicode正规形式将当前字符串正规化
-* Stirng.prototype.padEnd, 该方法会用一个字符串填充当前字符串，返回填充后达到指定长度的字符串。从当前字符串的末尾(右侧)开始填充
-* String.prototype.padStart, 该方法用另一个字符串填充当前字符串，以便于达到给定的长度，从当前字符串的左侧开始填充
-* String.prototype.repeat, 该方法构造并返回一个新字符串，该字符串包含被链接在一起指定数量的字符串的副本
-* String.prototype.replace, 该方法返回一个替换值，替换部分或所有的模式匹配项后的新字符串。模式可以是一个字符串，也可以是一个正则表达式，替换值可以是一个字符串或者一个每次匹配都要调用的回调函数
-* String.prototype.replaceAll, 该方法返回一个新字符串，新字符串所有满足pattern的部分都被replacement替换
-* String.prototype.search, 该方法执行正则表达式和String对象之间的一个搜索匹配
-* String.prototype.slice, 该方法提取某个字符串的一部分，并返回一个新的字符串，且不会改动原字符串
-* String.prototype.split, 该方法使用制定和的分隔符字符串将一个String对象分割成子字符串数组，以一个自定的分隔符来决定每个拆分的位置
-* String.prototype.startsWith, 该方法用来判断当前字符串是否以另外一个给定的子字符串开头，并根据判断结果返回true或者是false
-* String.prototype.substr, 该方法返回一个字符串中从指定位置开始到指定字符数的字符
-* String.prototype.substring, 该方法返回一个字符串在开始索引到结束索引之间的一个子集，或从开始索引直到字符串的末尾的一个子集
-* String.prototype.toLowerCase, 该方法将返回一个全部为小写的字符串
-* String.prototype.trim, 该方法去除该字符串中的前后空格
-* String.prototype.toUpperCase, 该方法将原字符串改为大写
+* String.prototype.match(), 该方法检索返回一个字符串匹配正则表达式的结果
+* String.prototype.matchAll(), 该方法返回一个包含所有匹配正则表达式的结果及分组捕获组的迭代器
+* String.prototype.normalize(), 该方法会按照制定的一种Unicode正规形式将当前字符串正规化
+* Stirng.prototype.padEnd(), 该方法会用一个字符串填充当前字符串，返回填充后达到指定长度的字符串。从当前字符串的末尾(右侧)开始填充
+* String.prototype.padStart(), 该方法用另一个字符串填充当前字符串，以便于达到给定的长度，从当前字符串的左侧开始填充
+* String.prototype.repeat(), 该方法构造并返回一个新字符串，该字符串包含被链接在一起指定数量的字符串的副本
+* String.prototype.replace(), 该方法返回一个替换值，替换部分或所有的模式匹配项后的新字符串。模式可以是一个字符串，也可以是一个正则表达式，替换值可以是一个字符串或者一个每次匹配都要调用的回调函数
+* String.prototype.replaceAll(), 该方法返回一个新字符串，新字符串所有满足pattern的部分都被replacement替换
+* String.prototype.search(), 该方法执行正则表达式和String对象之间的一个搜索匹配
+* String.prototype.slice(), 该方法提取某个字符串的一部分，并返回一个新的字符串，且不会改动原字符串
+* String.prototype.split(), 该方法使用制定和的分隔符字符串将一个String对象分割成子字符串数组，以一个自定的分隔符来决定每个拆分的位置
+* String.prototype.startsWith(), 该方法用来判断当前字符串是否以另外一个给定的子字符串开头，并根据判断结果返回true或者是false
+* String.prototype.substr(), 该方法返回一个字符串中从指定位置开始到指定字符数的字符
+* String.prototype.substring(), 该方法返回一个字符串在开始索引到结束索引之间的一个子集，或从开始索引直到字符串的末尾的一个子集
+* String.prototype.toLowerCase(), 该方法将返回一个全部为小写的字符串
+* String.prototype.trim(), 该方法去除该字符串中的前后空格
+* String.prototype.toUpperCase(), 该方法将原字符串改为大写
 
+
+## Obeject中的方法
+* Object.assign(), 该方法用于将所有可枚举属性的值从一个或多个源对象分配到目标对象，它将返回目标对象。如果目标对象中的属性具有相同的键，则属性将被源对象中的属性覆盖。后面的源对象的属性将类似地覆盖前面的源对象的属性
+* Object.create(), 该方法创建一个新对象，使用现有的对象来提供新创建的对象的__proto__
+* Object.defineProperties()，该方法直接在一个对象上定义新的属性或修改现有属性，并返回该对象
+* Object.defineProperty(), 该方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性，并返回此对象
+* Object.entries(), 该方法返回一个给定对象自身可枚举属性的键值对数组，其排列与使用for...in循环遍历该对象时返回的顺序一致。
+* Object.freeze(), 该方法可以冻结一个对象，一个被冻结的对象，再也不能被修改
+* Object.fromEntries(), 该方法把键值对列表转化为一个对象
+* Object.getOwnPropertyDescriptor(), 该方法返回指定对象上一个自有属性对应的属性描述符
+* Object.getOwnPropertyNames()， 该方法返回一个指定对象的所有自身属性
 ## 浏览器中的多线程
 * js是单线程的，但是浏览器是多线程的，多个县城相互配合以保持同步，浏览器下的线程有  
     * javascript引擎线程，用于去解析javascript代码
