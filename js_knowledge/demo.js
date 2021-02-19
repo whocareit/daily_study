@@ -812,24 +812,36 @@ const vm = new Mvue({
 // }
 // console.log(compose(add, mul)(2));
 
-function throttle(handler, wait) {
-    var initTime = 0;
-    return function() {
-        var nowTime = new Date().getTime();
-        if (nowTime - initTime > wait) {
-            handler.apply(this, arguments);
-            initTime = nowTime;
-        } 
-    }
-}
+// function throttle(handler, wait) {
+//     var initTime = 0;
+//     return function() {
+//         var nowTime = new Date().getTime();
+//         if (nowTime - initTime > wait) {
+//             handler.apply(this, arguments);
+//             initTime = nowTime;
+//         } 
+//     }
+// }
 
-function debounce(handle, delay) {
-    var timer = null;
-    return function() {
-        var _self = this, _that = arguments;
-        clearTimeout(timer);
-        timer = setTimeout(function(){
-            handle.apply(_self, _that);
-        }, delay)
+// function debounce(handle, delay) {
+//     var timer = null;
+//     return function() {
+//         var _self = this, _that = arguments;
+//         clearTimeout(timer);
+//         timer = setTimeout(function(){
+//             handle.apply(_self, _that);
+//         }, delay)
+//     }
+// }
+
+function compose() {
+    let args = [].slice.call(arguments);
+    let len = args.length - 1;
+    return function(x) {
+        let result = args[len](x);
+        while(len--) {
+            result = args[len](result);
+        }
+        return result;
     }
 }

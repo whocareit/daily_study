@@ -193,7 +193,7 @@ console.log(boundGetX());
         }
     }
 
-    function debounce(hanle, delay) {
+    function debounce(handle, delay) {
         var timer = null;
         return function() {
             var _this = this, _arg = arguments;
@@ -299,7 +299,31 @@ const newCurry = function (fn, length) {
         _fib(n)
     }
 ```
+## 组合函数实现
+* 其作用就是将多个函数的功能给组合在一起，具体实现方式如下
+```
+function compose() {
+    let args = [].slice.call(arguments);
+    let len = args.length - 1;
+    return function(x) {
+        let result = args[len](x);
+        while(len--) {
+            result = args[len](result);
+        }
+        return result;
+    }
+}
 
+//具体使用案例如下：
+function add(a) {
+    return a*a;
+}
+
+function mul(a) {
+    return a+a;
+}
+console.log(compose(add, mul)(2));
+```
 ### 两者的相同点与异同点
 * 相同点：
     * 都可以通过setTimeout实现
