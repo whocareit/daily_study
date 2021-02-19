@@ -185,13 +185,25 @@ console.log(boundGetX());
     * 窗口大小Resize。只需要窗口调整完成后，计算窗口大小，防止重复渲染
 * 简单实现方式
 ```
-    const debounce = (func, wait) => {
+    const debounce = (func, delay) => {
         let timer;
         return () => {
             clearTimeout(timer);
-            timer = setTimeout(func, wait);
+            timer = setTimeout(func, delay);
         }
     }
+
+    function debounce(hanle, delay) {
+        var timer = null;
+        return function() {
+            var _this = this, _arg = arguments;
+            clearTimeout(timer);
+            timer = setTimeout(function(){
+                handle.apply(_this, _arg);
+            }, delay)
+        }
+    }
+
 ```
 ### 函数节流
 * 含义： 指的是限定一个函数在一定时间内只能执行一次
@@ -200,18 +212,17 @@ console.log(boundGetX());
     * 谷歌搜索框，搜索联想功能
     * 高频点击提交，表单重复提交
 * 简单实现方式
-const throttle = (func, wait) => {
-    let timer;
-    return () => {
-        if(timer) {
-            return;
+```
+function throttle = (handle, wait) {
+    var initTime = 0;
+    return function() {
+        var nowTime = new Date().getTime();
+        if(nowTime - initTime > wait) {
+            handle.apply(this, arguments);
         }
-        timer = setTimeout(() => {
-            func();
-            timer = null;
-        }, wait)
     }
 }
+```
 
 ## 函数柯里化与数组扁平化
 ### 函数柯里化

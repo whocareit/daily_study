@@ -758,6 +758,78 @@ const vm = new Mvue({
 // console.log(Object.getOwnPropertyNames(arr).sort());
 
 //Object.getprototypeOf
-const prototype1 = {};
-const object1 = Object.create(prototype1);
-console.log(Object.getPrototypeOf(object1) === prototype1);
+// const prototype1 = {};
+// const object1 = Object.create(prototype1);
+// console.log(Object.getPrototypeOf(object1) === prototype1);
+
+//函数柯里化实现
+// function FixedParams(fn) {
+//     var args = [].slice.call(arguments, 1);
+//     return function() {
+//         var newArgs = args.concat([].slice.call(arguments, 0));
+//         return fn.apply(this, newArgs);
+//     }
+// }
+
+// function newCurry(fn, length) {
+//     var length = fn.length || length;
+//     return function() {
+//         if(arguments.length < length) {
+//             var combined = [fn].concat([].slice.call(arguments, 0));
+//             return newCurry(FixedParams.apply(this, combined), length - arguments.length);
+//         } else {
+//             return fn.apply(this, arguments);
+//         }
+//     }
+// }
+
+// function add(a, b, c, d, e) {
+//     return a + b + c + d + e;
+// }
+
+// const ne = newCurry(add, 5);
+// console.log(ne(1)(2)(3)(4)(7));
+
+//组合函数实现方式
+// function compose() {
+//     const args = [].slice.call(arguments);
+//     let len = args.length - 1;
+//     return function (x) {
+//         let result = args[len](x);
+//         while(len--) {
+//             result = args[len](result);
+//         }
+//         return result;
+//     }
+// }
+
+// function add(a) {
+//     return a*a;
+// }
+
+// function mul(a) {
+//     return a+a;
+// }
+// console.log(compose(add, mul)(2));
+
+function throttle(handler, wait) {
+    var initTime = 0;
+    return function() {
+        var nowTime = new Date().getTime();
+        if (nowTime - initTime > wait) {
+            handler.apply(this, arguments);
+            initTime = nowTime;
+        } 
+    }
+}
+
+function debounce(handle, delay) {
+    var timer = null;
+    return function() {
+        var _self = this, _that = arguments;
+        clearTimeout(timer);
+        timer = setTimeout(function(){
+            handle.apply(_self, _that);
+        }, delay)
+    }
+}
