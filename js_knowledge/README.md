@@ -1704,7 +1704,25 @@ vrrp_instance VI_1 {
 * Object.freeze(), 该方法可以冻结一个对象，一个被冻结的对象，再也不能被修改
 * Object.fromEntries(), 该方法把键值对列表转化为一个对象
 * Object.getOwnPropertyDescriptor(), 该方法返回指定对象上一个自有属性对应的属性描述符
-* Object.getOwnPropertyNames()， 该方法返回一个指定对象的所有自身属性
+* Object.getOwnPropertyNames()， 该方法返回一个指定对象的所有自身属性的属性名(包括不可枚举属性但不包括Symbol值作为名称的属性)组成的数组
+* Object.getOwnPropertySymbols(), 该方法返回一个给定对象自身所有的Symbol属性的数组
+* Object.getPrototypeOf(), 该方法返回指定对象的原型
+* Object.is(),该方法用于判断两个值是否为同一个值，描述如下：
+```
+//满足下面的条件两个值相等
+1. 都是undefined
+2. 都是null
+3. 都是true或false
+4. 都是相同长度的字符串并且相同字符串相同顺序排列
+5. 都是相同对象(每个对象有相同的引用)
+6. 都是数字，并且+0 都是-0 都是NaN
+7. 与==运算不同，==运算符在判断相等前对两边的变量(如果不是相同类型)会进行强制类型转化，而Object.is不会强制转化两边的值
+8. 与===运算不同，将-0和+0视为相等，而将Number.NaN与NaN视为不等
+```
+* Object.isExtensible()， 该方法判断一个对象是否为可扩展的
+* Object.keys()， 该方法返回一个由给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和正常循环遍历该对象时返回的顺序一致
+* Obeject.prototype.hasOwnProperty()， 该方法返回一个布尔值，指示对象自身属性中是否具有指定的属性
+* Obeject.prototype.isPrototypeOf(), 该方法用于测试一个对象是否存在与另一个对象的原型上
 ## 浏览器中的多线程
 * js是单线程的，但是浏览器是多线程的，多个县城相互配合以保持同步，浏览器下的线程有  
     * javascript引擎线程，用于去解析javascript代码

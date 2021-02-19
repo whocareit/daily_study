@@ -745,11 +745,19 @@ const vm = new Mvue({
 // }
 // console.log(deepClone({}, obj))
 
-const obj = {};
+// const obj = {};
 
-Object.defineProperty(obj, 'demo', {
-    value: 21,
-    writable: true
-})
+// Object.defineProperty(obj, 'demo', {
+//     value: 21,
+//     writable: true
+// })
 
-console.log(obj);
+// console.log(obj);
+
+// var arr = ["a", "b", "c"];
+// console.log(Object.getOwnPropertyNames(arr).sort());
+
+//Object.getprototypeOf
+const prototype1 = {};
+const object1 = Object.create(prototype1);
+console.log(Object.getPrototypeOf(object1) === prototype1);
