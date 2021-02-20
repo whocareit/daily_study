@@ -48,11 +48,13 @@ if(window.XMLHttpRequest) {
         * 200： "OK"
         * 404: 未找到网页
 * 当响应成功后就会去有下面的实例发生
+```
     xmlHttp.onreadystatechange = function() {
         if(xmlHttp.readyState == 4 && xmlHttp.status == 200) {
             ....//执行你想要的操作
         }
     }
+```
 # js基础几个原理运用
 ## call与apply以及bind
 * 两个的方法的异同点，改变this指向，传参列表不同

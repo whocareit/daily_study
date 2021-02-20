@@ -834,14 +834,112 @@ const vm = new Mvue({
 //     }
 // }
 
-function compose() {
-    let args = [].slice.call(arguments);
-    let len = args.length - 1;
-    return function(x) {
-        let result = args[len](x);
-        while(len--) {
-            result = args[len](result);
-        }
-        return result;
+// function compose() {
+//     let args = [].slice.call(arguments);
+//     let len = args.length - 1;
+//     return function(x) {
+//         let result = args[len](x);
+//         while(len--) {
+//             result = args[len](result);
+//         }
+//         return result;
+//     }
+// }
+
+// var xmlHttp;
+// if(window.XMLHttpRequest) {
+//     xmlHttp = new XMLHttpRequest();
+// } else {
+//     xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
+// }
+
+//js继承
+
+//原型继承
+// function Person(name, age) {
+//     this.name = name;
+//     this.age = age;
+// }
+
+// function Student(school) {
+//     this.school = school;
+// }
+// Student.prototype = new Person();
+
+// const person = new Person();
+//缺点：多个实例对引用类型的操作会被篡改
+
+//构造函数继承
+// function Car(name, color, size) {
+//     this.name = name;
+//     this.color = color;
+//     this.size = size;
+// }
+
+// function BMM(name, color, size, model) {
+//     Car.call(this, name, color, size);
+//     this.model = model;
+// }
+//缺点，只能继承父类实例属性和方法，不能继承原型属性/方法
+
+//组合函数继承
+// function Animal(type, size, food) {
+//     this.type = type;
+//     this.size = size;
+//     this.food = food;
+// }
+
+// Animal.prototype.sayName = function() {
+//     console.log(this.name);
+// }
+
+// function Dog(type, size, food, age) {
+//     Animal.call(this, type, size, food);
+//     this.age = age;
+// }
+
+// Dog.prototype = new Animal();
+//在使用子类创建实例对象时，其原型中会存在两份相同的属性/方法
+
+//圣杯模式继承
+// var inherit = (function(){
+//     var F = function() {};
+//     return function(Target, Origin) {
+//         F.prototype = Origin.prototype;
+//         Target.prototype = new F();
+//         Origin.prototype.constructor = Target;
+//         Target.prototype.uper = Origin.prototype;
+//     }
+// })()
+
+//jsonp原理实现
+// function addScriptTag(src) {
+//     var script = document.createElement('script');
+//     script.setAttribute('type', 'text/javascript');
+//     script.src = src;
+//     document.body.appendChild(script);
+// }
+
+// window.onload = function() {
+//     addScriptTag("http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=apple&callback=result");
+// }
+
+// function result(data) {
+//     console.log(data);
+// }
+
+function abc(str) {
+    let arr = [];
+    for(let i = 0; i < str.length; i++) {
+        arr[str.charCodeAt(i) - 65] += 1;
     }
+    console.log(arr)
+    for(let i = 0; i < str.length; i++) {
+        if(arr[str.charCodeAt(i) - 65] == 1) {
+            return i;
+        }
+    }
+    return -1;
 }
+
+console.log(abc('google'));
