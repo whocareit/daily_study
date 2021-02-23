@@ -782,7 +782,6 @@ const vm = new Mvue({
 //         }
 //     }
 // }
-
 // function add(a, b, c, d, e) {
 //     return a + b + c + d + e;
 // }
@@ -822,6 +821,7 @@ const vm = new Mvue({
 //         } 
 //     }
 // }
+
 
 // function debounce(handle, delay) {
 //     var timer = null;
@@ -928,18 +928,53 @@ const vm = new Mvue({
 //     console.log(data);
 // }
 
-function abc(str) {
-    let arr = [];
-    for(let i = 0; i < str.length; i++) {
-        arr[str.charCodeAt(i) - 65] += 1;
+// function abc(str) {
+//     let arr = [];
+//     for(let i = 0; i < str.length; i++) {
+//         arr[str.charCodeAt(i) - 65] += 1;
+//     }
+//     console.log(arr)
+//     for(let i = 0; i < str.length; i++) {
+//         if(arr[str.charCodeAt(i) - 65] == 1) {
+//             return i;
+//         }
+//     }
+//     return -1;
+// }
+
+// console.log(abc('google'));
+
+
+//call实现
+Function.prototype.newCall = function(){
+    var ctx = arguments[0] || window;
+    ctx.fn = this;
+    var arr = [];
+    for(let i = 1; i < arguments.length; i++) {
+        arr.push('arguments['+ i +']');
     }
-    console.log(arr)
-    for(let i = 0; i < str.length; i++) {
-        if(arr[str.charCodeAt(i) - 65] == 1) {
-            return i;
-        }
-    }
-    return -1;
+    var result = eval('ctx.fn('+arr.join(',')+')')
+    delete ctx.fn;
+    return result;
 }
 
-console.log(abc('google'));
+Function.prototype.newApply = function(fn, array) {
+    var ctx = fn || window;
+    ctx.fn = this;
+    if(!array) {
+        var result = ctx.fn();
+        delete ctx.fn;
+        return result;
+    } else {
+        var arr = [];
+        for(let i = 0; i < array.length; i++) {
+            arr.push('array['+i+']');
+        }
+        var result = eval('ctx.fn('+arr.join(',')+')');
+        delete ctx.fn;
+        return result;
+    }
+    
+
+}
+

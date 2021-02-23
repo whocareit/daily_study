@@ -87,7 +87,7 @@ if(window.XMLHttpRequest) {
         } else {
             var args = [];
             for(let i = 0; i < arr.length; i++) {
-                arr.push('arguments['+ i +']');
+                arr.push('arr['+ i +']');
             }
             var result = eval('ctx.fn('+ args.join(',') +')');
             delete ctx.fn;
@@ -1786,3 +1786,16 @@ vrrp_instance VI_1 {
 ## 深浅拷贝
 * 浅拷贝是对对象地址的复制，并没有开辟新的栈，复制的结果是两个对象指向同一个地址，修改其中一个对象的属性，另一个对象的属性就会改变
 * 深拷贝是开辟新的栈，两个对象对应不同的地址，修改一个对象的属性，不会改变另一个对象的属性
+
+## js中的隐式类型转化中常见法则
+* if会自定转为boolean类型
+    * 转为false: '', false, null, undefined, NaN
+    * 转为true: true, [], {}
+* 参与+会被隐式的转为字符串
+    * 被转为空字符串的数据： '', []
+    * 被转为字符串的数据：flase, true, NaN, null, undefiend
+    * 被转为数据类型标记的数据：{}
+* 参与*运算符会被隐式转为数字：
+    * 转为0: '', [], false
+    * 转为1: true, [1], '1'
+    * 转为NaN: {}, {a: 1}
