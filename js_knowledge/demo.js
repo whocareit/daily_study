@@ -946,35 +946,349 @@ const vm = new Mvue({
 
 
 //call实现
-Function.prototype.newCall = function(){
-    var ctx = arguments[0] || window;
-    ctx.fn = this;
-    var arr = [];
-    for(let i = 1; i < arguments.length; i++) {
-        arr.push('arguments['+ i +']');
-    }
-    var result = eval('ctx.fn('+arr.join(',')+')')
-    delete ctx.fn;
-    return result;
-}
+// Function.prototype.newCall = function(){
+//     var ctx = arguments[0] || window;
+//     ctx.fn = this;
+//     var arr = [];
+//     for(let i = 1; i < arguments.length; i++) {
+//         arr.push('arguments['+ i +']');
+//     }
+//     var result = eval('ctx.fn('+arr.join(',')+')')
+//     delete ctx.fn;
+//     return result;
+// }
 
-Function.prototype.newApply = function(fn, array) {
-    var ctx = fn || window;
-    ctx.fn = this;
-    if(!array) {
-        var result = ctx.fn();
-        delete ctx.fn;
-        return result;
-    } else {
-        var arr = [];
-        for(let i = 0; i < array.length; i++) {
-            arr.push('array['+i+']');
-        }
-        var result = eval('ctx.fn('+arr.join(',')+')');
-        delete ctx.fn;
-        return result;
-    }
-    
+//apply
+// Function.prototype.newApply = function(fn, array) {
+//     var ctx = fn || window;
+//     ctx.fn = this;
+//     if(!array) {
+//         var result = ctx.fn();
+//         delete ctx.fn;
+//         return result;
+//     } else {
+//         var arr = [];
+//         for(let i = 0; i < array.length; i++) {
+//             arr.push('array['+i+']');
+//         }
+//         var result = eval('ctx.fn('+arr.join(',')+')');
+//         delete ctx.fn;
+//         return result;
+//     }
+// }
 
-}
+//使用立即执行函数来实现圣杯模式的继承
+// var inherit = (function(){
+//     function F(){}
+//     return function(Origin, Target) {
+//         F.prototype = Origin.prototype;
+//         Target.prototype = new F();
+//         Target.prototype.constructor = Target;
+//         Target.prototype.uper = Origin.prototype;
+//     }
+// })()
+
+// Function.prototype.newBind = function() {
+//     var self = this,
+//         context = [].shift.call(arguments),
+//         argument = [].slice.call(arguments)
+//     return function() {
+//         return self.apply(context, argument);
+//     }
+// }
+
+// Array.prototype.flatten = function() {
+//     let result = [];
+//     this.forEach(function(item) {
+//         Object.prototype.toString.call(item) === '[object Array]' ? result = result.concat(item.flatten()) : result.push(item);
+//     })
+//     return result;
+// }
+
+// console.log([1, 2, 3, [2, 3, 4, 5, [2, 3]]].flatten())
+
+// const PROMISE_STATUS = {
+//     PENDING: 'pending',
+//     FULFILLED: 'fulfilled',
+//     REJECTED: 'rejected'
+// }
+
+// const isFunction = fn => typeof fn === 'function';
+
+// class myPromise {
+//     constructor(handle) {
+//         if(!isFunction(handle)) {
+//             throw new Error('myPromise must access a fucntion!');
+//         }
+
+//         try {
+//             handle(this._fulfilled.bind(this), this._rejected.bind(this));
+//         } catch(e) {
+//             this._rejected(e);
+//         }
+//         this._value = undefined;
+//         this._status = PROMISE_STATUS.PENDING;
+
+//         this._fulfilledQueue = [];
+//         this._rejectedQueue = [];
+//     }
+
+//     _fulfilled(value) {
+//         if(this._status !== PROMISE_STATUS.PENDING) return;
+//         this._status = PROMISE_STATUS.FULFILLED;
+//         this._value = value;
+//     }
+
+//     _rejected(value) {
+//         if(this._status !== PROMISE_STATUS.PENDING) return;
+//         this._status = PROMISE_STATUS.REJECTED;
+//         this._value = value;
+//     }
+
+//     then(onFulfilled, onRejected) {
+//         let { _status, _value } = this;
+//         return new myPromise((onFulfilledNext, onRejectedNext) => {
+
+//             let resolve = value => {
+//                 try {
+//                     if(!isFunction(onFulfilled)){
+//                         onFulfilledNext(value);
+//                     } else {
+//                         let res = onFulfilled(value);
+//                         if(res instanceof myPromise) {
+//                             res.then((onFulfilledNext, onRejectedNext))
+//                         } else {
+//                             onFulfilledNext(res);
+//                         }
+//                     }
+//                 } catch(e) {
+//                     onRejectedNext(e)
+//                 }
+//             }
+
+//             let reject = value => {
+//                 try {
+//                     if(!isFunction(value)) {
+//                         onRejectedNext(value);
+//                     } else {
+//                         let res = onRejected(res);
+//                         if(res instanceof myPromise) {
+//                             res.then((onFulfilledNext, onRejectedNext));
+//                         }
+//                     }
+//                 } catch(e) {
+//                     onRejectedNext(e)
+//                 }
+//             }
+
+
+//             switch(_status) {
+//                 case PROMISE_STATUS.PENDING :
+//                     this._fulfilledQueue.push(resolve);
+//                     this._rejectedQueue.push(reject);
+//                     break;
+//                 case PROMISE_STATUS.FULFILLED :
+//                     resolve(_value);
+//                     break;
+//                 case PROMISE_STATUS.REJECTED : 
+//                     reject(_value);
+//                     break;
+//             }
+//         })
+//     }
+// }
+
+//redux实现，getState, dispatch, subscribe
+// function createState(stateChange) {
+//     let state = null;
+//     const listeners = [];
+//     const subscribe = (listener) => listeners.push(listener);
+//     const getState = () => state;
+//     const dispatch = (action) => {
+//         state = stateChange(state, action);
+//         listeners.forEach(listener => listener());
+//     }
+//     dispatch({});
+//     return { getState, dispatch, subscribe };
+// }
+
+
+// //connect函数简单实现过程
+// import { Component } from 'react';
+// import { PropTypes } from 'prop-types';
+
+// const connect = (mapStateToProps, mapDispatchToProps) => (WrapperComponent) => {
+//     class Connect extends Component {
+
+//         static contextTypes = {
+//             store: PropTypes.object
+//         }
+
+//         constructor() {
+//             super();
+//             this.state = {
+//                 allProps: {}
+//             }
+//         }
+
+//         componentDidMount() {
+//             const { store } = this.context;
+//             this._updateProps();
+//             store.subscribe(this._updateProps());
+//         }
+
+//         _updateProps() {
+//             const { store } = this.context;
+//             let stateProps = mapStateToProps ? mapStateToProps(store.getState(), this.props) : {};
+//             let dispatchProps = mapDispatchToProps ? mapDispatchToProps(store.dispatch, this.props) : {};
+//             return {
+//                 ...stateProps,
+//                 ...dispatchProps,
+//                 ...this.props
+//             }
+//         }
+
+
+
+//         render() {
+//             return (
+//                 <WrapperComponent />
+//             )
+//         }
+//     }
+
+//     return Connect;
+// }
+// const http = require('http');
+// const slice = Array.prototype.slice;
+
+// class LikeExpress {
+//     constructor() {
+//         this.routes = {
+//             all: [],
+//             get: [],
+//             post: []
+//         }
+//     }
+
+//     register(path) {
+//         const info = {};
+//         if(typeof path === 'string') {
+//             info.path = path;
+//             info.stack = slice.call(arguments, 1);
+//         } else {
+//             info.path = '/';
+//             info.stack = slice.call(arguments, 0);
+//         }
+//         return info;
+//     }
+
+//     use() {
+//         const info = this.register.apply(this, arguments);
+//         this.routes.all.push(info);
+//     }
+
+//     get() {
+//         const info = this.register.apply(this, arguments);
+//         this.routes.get.push(info);
+//     }
+
+//     post() {
+//         const info = this.register.apply(this, arguments);
+//         this.routes.post.push(info);
+//     }
+
+//     match(method, url) {
+//         let stack = [];
+
+//         if(url === '/favicon.ico') {
+//             return stack;
+//         }
+
+//         let curRoute = [];
+//         curRoute = curRoute.concat(this.routes.all);
+//         curRoute = curRoute.concat(this.routes[method]);
+//         curRoute.forEach(infoRoute => {
+//             if(url.indexOf(infoRoute.path) === 0) {
+//                 stack = stack.concat(infoRoute.stack);
+//             }
+//         })
+//         return stack;
+//     }
+
+//     handle(req, res, stack){
+//         const next = () => {
+//             const middleware = stack.shift();
+//             if(middleware) {
+//                 middleware(req, res, next);
+//             }
+//         }
+//         next()
+//     }
+
+//     callback() {
+//         return (req, res) => {
+//             res.json = data => {
+//                 res.setHeader('Content-type', 'application/json');
+//                 res.end(JSON.stringify(data));
+//             }
+//             const url = req.url;
+//             const method = req.method.toLowerCase();
+//             const resultList = this.match(method, url);
+//             handle(req, res, resultList);
+//         }
+//     }
+
+//     listen(args) {
+//         const serve = http.createServer(this.callback())
+//         serve.listen(...args);
+//     }
+// }
+
+// const compose = (middlewarelist) => {
+//     return (ctx) => {
+//         const dispatch = (i) => {
+//             const fn = middlewarelist[i];
+//             try{
+//                 return Promise.resolve(fn(ctx, dispatch.bind(null, i+1)));
+//             } catch(e) {
+//                 return Promise.reject(e);
+//             }
+//         }
+//         dispatch(i);
+//     }
+// }
+// const http = require('http');
+// class LikeKoa {
+//     constructor() {
+//         this.middlewareList = [];
+//     }
+
+//     use(fn) {
+//         this.middlewareList.push(fn);
+//         return this;
+//     }
+
+//     createContent(req, res) {
+//         const ctx = {
+//             req,
+//             res
+//         }
+//         ctx.query = req.query;
+//         return ctx;
+//     }
+
+//     callback() {
+//         const fn = compose(this.middlewareList)
+//         return (req, res) => {
+//             const ctx = createContent(req, res);
+//             return fn(ctx)
+//         }
+//     }
+
+//     listen(args) {
+//         const serve = http.createServer(this.callback())
+//         serve.listen(...args);
+//     }
+// }
 
