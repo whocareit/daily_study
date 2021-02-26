@@ -1292,3 +1292,112 @@ const vm = new Mvue({
 //     }
 // }
 
+//单例模式: 只能获得唯一一个对象
+// var Single = (function() {
+//     var instance;
+
+//     function Init() {
+//         return {
+
+//         }
+//     }
+
+//     return {
+//         getInstance: function() {
+//             if(!instance) {
+//                 instance = new Init();
+//             }
+//             return instance;
+//         }
+//     }
+// })()
+
+// var single1 = Single.getInstance();
+// var single2 = Single.getInstance();
+
+
+//工厂模式
+// function Animal(opts) {
+//     var obj = new Object();
+//     obj.color = opts.color;
+//     obj.name = opts.name;
+//     obj.getInfo = function () {
+//         return 'name ' + obj.name + '  color ' + obj.color;
+//     }
+//     return obj;
+// }
+
+// var cat = Animal({name: 'cat', color: 'dog'});
+// console.log(cat.getInfo());
+
+//构造函数模式：优点，解决重复序列化问题，又解决对象识别问题
+// function Animal(name, color) {
+//     this.name = name;
+//     this.color = color;
+//     this.getInfo = function() {
+//         return this.name + 'and' + this.color;
+//     }
+// }
+// const cat = new Animal('cat', 'white');
+// console.log(cat);
+
+//订阅/发布模式，订阅者，调度中心，发布者
+// class Event {
+//     handles = {}
+//     constructor() {}
+
+//     addEventListener(type, handle) {
+//         if(!(type in this.handles)) {
+//             this.handles[type] = [];
+//         }
+
+//         this.handles[type].push(handle);
+//     }
+
+//     dispatchEvent(type, ...params) {
+
+//         if(!(type in this.handles)) {
+//             throw new Error('该事件没有被注册');
+//         }
+
+//         this.handles[type].forEach(item => item(...params));
+//     }
+
+//     removeEventListener(type, handle) {
+//         if(!(type in this.handles)) {
+//             throw new Error('无效事件');
+//         }
+
+//         if(!handle) {
+//             delete this.handles[type];
+//         } else {
+//             const idx = this.handles[type].findIndex(ele => ele === handle);
+
+//             if(idx == -1) {
+//                 return new Error('无该绑定事件');
+//             } 
+//             this.handles[type].splice(idx, 1);
+//             if(this.handles[type].length === 0) {
+//                 delete this.handles[type];
+//             }
+//         }
+//     } 
+// }
+
+// let x = 99;
+// function foo(p = x + 1) {
+//     console.log(p);
+// }
+
+// foo();
+// x = 100;
+// foo();
+
+
+function demo(x, y = 5) {
+    console.log({x, y});
+}
+
+demo({});
+demo({x: 1});
+demo({x: 2, y: 5})

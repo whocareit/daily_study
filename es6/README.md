@@ -231,7 +231,7 @@ for (let codePoint of 'foo') {
 ```
 * 适用for...of...还可以去识别码点大于0xFFFF的码点，for...in...循环就无法去识别这样的码点
 ```
-let text = String.from.fromCodePoint(0x20BB7);
+let text = String.fromCodePoint(0x20BB7);
 for(let i of text) {
     console.log(i)
 }
@@ -250,8 +250,8 @@ for(let i of text) {
     * U + 000A: 换行符
 
 ### JSON.stringify()方法的改造
-* 按照标准，JSON数据必须是UTF-8编码，但是在JSON.stringify()方法中可能返回不符合规定的UTF-8比奥准的字符串，具体来说就是utf-8标准规定，0xD800和0XDFFF之间的码点，不能单独使用，必须配对来使用。
-* JSON.stringify()的问题在于，它可能返回0xD800到0xDFFF之间的单个码点，因而在es2019中中为了确保返回的是合法的utf-8字符，es2019改变了JSON.stringify()的行为。如果遇到0xD800到0XDFFF之间的单个码点，或者不存在的配对形式，他会返回转义字符串
+* 按照标准，JSON数据必须是UTF-8编码，但是在JSON.stringify()方法中可能返回不符合规定的UTF-8标准的字符串，具体来说就是utf-8标准规定，0xD800和0XDFFF之间的码点，不能单独使用，必须配对来使用。
+* JSON.stringify()的问题在于，它可能返回0xD800到0xDFFF之间的单个码点，因而在es2019中为了确保返回的是合法的utf-8字符，es2019改变了JSON.stringify()的行为。如果遇到0xD800到0XDFFF之间的单个码点，或者不存在的配对形式，他会返回转义字符串
 
 ### 模板字符串
 * 对于传统的js而言，输出模板通常就是采用单双引号的写法来写如下面的案列所示
@@ -960,7 +960,7 @@ function foo() {
 }
 foo.name // foo
 ```
-* 这个属性早就被浏览器所广泛支持，但是到了es6，才将其卸载标准当中
+* 这个属性早就被浏览器所广泛支持，但是到了es6，才将其写在标准当中
 * 需要注意的是，es6对这个属性的行为做了一些修改，如果将一个匿名和赋值给一个变量，es5
 的name属性，会返回空字符串，而es6的name属性会返回实际的函数名称, 如下面的案例所示
 ```
@@ -1217,7 +1217,7 @@ let arrayLike = {
     length: 3
 }
 ```
-* 在上面的实例中，arrayLike是一个类数组，但是没有奴书Iterator接口，扩展运算符就会报错，这是可ui改为Array.from方法将arrayLike转为真正的数组
+* 在上面的实例中，arrayLike是一个类数组，但是没有部署Iterator接口，扩展运算符就会报错，这是可以改为Array.from方法将arrayLike转为真正的数组
 
 * Map和Set解构,Generator函数
 * 扩展运算符内部调用的是数组解构的Iterator接口，因此只要具有Iterator接口的对象，都可以使用扩展运算符，比如Map结构，如下所示：
@@ -1246,7 +1246,7 @@ const go = function *() {
 * 对于传入参数的说明
  * 如果参数是一个真正的数组，Array.from会返回一个一模一样的数组
  * 需要注意的是扩展运算符也可以将某些数据结构转为数组，如类数组中含有Iterable接口的
- * Array.from还可以接受第二个参数，作用类似于数组的map方法，用来对每个㢝进行处理，将处理后的值放入返回的数组，如下所示
+ * Array.from还可以接受第二个参数，作用类似于数组的map方法，用来对每个元素进行处理，将处理后的值放入返回的数组，如下所示
  ```
  Array.from(arrayLike, x => x * x);
 // 等同于
@@ -1374,7 +1374,7 @@ for (let [index, elem] of ['a', 'b'].entries()) {
 * 在es5中对于空位的处理
     * forEach filter reduce every some都会跳过空位
     * map会跳过空位，但会保留这个值
-    * join和toString会将空位是为undefined, 而undefined和null会被处理成空字符串
+    * join和toString会将空位视为undefined, 而undefined和null会被处理成空字符串
 ```
 [,'a'].forEach((x,i) => console.log(i)); // 1
 
@@ -1500,7 +1500,7 @@ obj.hello();
 * 需要注意是属性名表达式如果是一个对象，默认情况喜爱会自动将对象转为字符串，这一点在使用的过程中要非常的小心
 
 ### 属性的可枚举性和遍历
-* 可枚举性，对象的每个属性都有一个描述对象，用来控制该属性的行为Object.getOwnPropertyDescripty方法可以获取该属性的描述对象
+* 可枚举性，对象的每个属性都有一个描述对象，用来控制该属性的行为Object.getOwnPropertyDescriptor方法可以获取该属性的描述对象
 ```
 let obj = { foo: 123 };
 Object.getOwnPropertyDescriptor(obj, 'foo')
@@ -1561,7 +1561,7 @@ const obj = {
     }
 }
 ```
-* 在上面的三种方式中，都会报错。原因是因为对于js引擎来说，这里的super都是没有用在对象的方法之中，第一种方式用在属性林年，第二种
+* 在上面的三种方式中，都会报错。原因是因为对于js引擎来说，这里的super都是没有用在对象的方法之中，第一种方式用在属性里面，第二种
 和第三种写法是super用在一个函数当中，然后赋值给foo属性
 
 ### 对象的扩展运算符
@@ -1583,7 +1583,7 @@ let { ...z } = undefined;
 let { ...x, y, z } = someObject; 
 let { x, ...y, ...z } = someObject;
 ```
-* **需要注意的是，解构赋值的拷贝是浅拷贝，即如果一个键的值事是复合类型的值，那么解构赋值拷贝的是这个值的引用，而不是这个值的副本**，如下面的案例所示
+* **需要注意的是，解构赋值的拷贝是浅拷贝，即如果一个键的值是复合类型的值，那么解构赋值拷贝的是这个值的引用，而不是这个值的副本**，如下面的案例所示
 ```
 let obj = { a: { b: 1 } };
 let { ...x } = obj;
@@ -2613,7 +2613,7 @@ someAsyncThing().then(function() {
 
 setTimeout(() => console.log(123), 2000);
 ```
-* 在上面的代码中，someAsyncThing函数产生的Promise对象，内部有语法错误。浏览器运行到这一行，会打印出错误提示ReferenceError: x is not defined，但是不会推出进程、终止脚本
+* 在上面的代码中，someAsyncThing函数产生的Promise对象，内部有语法错误。浏览器运行到这一行，会打印出错误提示ReferenceError: x is not defined，但是不会退出进程、终止脚本
 执行，2秒之后还是会输出123。这就是说Promise内部的错误不会影响到Promise外部的代码
 
 #### finally方法相关
@@ -2850,7 +2850,7 @@ console.log('next');
 * 在js中表示数据集合的数据结构，有数组 对象以及，Map和Set这四种数据集合，用户可以组合使用这四种数据结构。Iterator的就是一种机制，是一种接口，为各种不同的数据结构提供统一的访问机制。任何数据结构只要部署了Iterator接口，就可以
 完成遍历操作(即一次处理该数据结构的所有成员)
 * Iterator的作用有三个：
-    * 为各种数据结构，提供一个统一的、简便扽访问接口
+    * 为各种数据结构，提供一个统一的、简便的访问接口
     * 使得数据结构的成员能够按某种次序排列
     * es6中创造的一种新的遍历命令for...of循环，Iterator接口主要提供for...of消费
 * Iterator的遍历过程如下
@@ -2877,7 +2877,7 @@ function makeIterator(array) {
 }
 ```
 
-#### 默认Iterator借口
+#### 默认Iterator接口
 * Iterator接口的目的，就是为所有的数据结构，提供一种统一的访问机制，即for...of循环。当使用for...of循环便利某种数据结构时，该循环会自动去寻找Iterator接口，一种数据结构只要部署了Iterator接口，就可以称这种数据结构是可
 遍历的。在ES6中规定，默认的Iterator接口部署在数据结构的Symbol.iterator属性，或者一个数据结构只要具有Symbol.iterator属性，就可以认为其是可遍历的。Symbol.iterator属性本身是一个函数，就是当前数据结构默认的遍历器生成函数，就会
 返回一个遍历器。对于属性名Symbol.iterator，它是一个表达式，返回Symbol对象的iterator属性，这是个预定义好的、类型为Symbol的特殊值。如下所示：
