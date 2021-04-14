@@ -933,7 +933,7 @@ axios.interceptors.response.use(function (response) {
     return Promise.reject(error);
 })
 ```
-* 如果需要在之后移除拦截器，你可以调用eject方法来处理，如下所示
+* 如果需要在之后移除拦截器，你可以调用reject方法来处理，如下所示
 ```
 const myInterceptor = axios.interceptor.request.use(function () {})
 axios.interceptors.request.eject(myInterceptor)
