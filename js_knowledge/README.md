@@ -1789,6 +1789,16 @@ vrrp_instance VI_1 {
 * 浅拷贝是对对象地址的复制，并没有开辟新的栈，复制的结果是两个对象指向同一个地址，修改其中一个对象的属性，另一个对象的属性就会改变
 * 深拷贝是开辟新的栈，两个对象对应不同的地址，修改一个对象的属性，不会改变另一个对象的属性
 
+### 深拷贝中使用JSON.parse与JOSN.stringify实现深拷贝的实用场景
+* 优点，该深拷贝所适用的场景为一般对象、数组的拷贝
+* 缺点，凡是以下的场景都不行
+    1. json里面有时间对象
+    2. json里面有RegeExp Error对象
+    3. json里面有function undefined
+    4. json里面有NaN、Infinity，序列化的结果会变为null
+    5. json里面有构造函数，会丢弃掉对象的constructor
+    6. 对象里面存在循环引用
+
 ## js中的隐式类型转化中常见法则
 * if会自定转为boolean类型
     * 转为false: '', false, null, undefined, NaN
